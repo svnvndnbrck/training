@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VC Training">
+<title>Vandenbroucke Coaching · training</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23e0a200'%20stroke-width='2.4'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M2%2012%20H7%20L9%204%20L12%2020%20L14%209%20L16%2012%20H22'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#efece3; --panel:#fbfaf6; --panel2:#f1ede3; --line:#e4ded1;
+    --ink:#1d1b13; --muted:#8a8268;
+    --gold:#c8930f; --gold-fill:#f1c232;
+    --pwr:#c8930f;   /* vermogen (diep goud) */
+    --hr:#e23b30;    /* hartslag (rood)      */
+    --cad:#c0712a;   /* cadans   (brons)     */
+    --shadow:0 1px 2px rgba(28,26,18,.04),0 4px 16px rgba(28,26,18,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;min-height:100%;
+    padding:clamp(12px,2vw,22px);gap:clamp(10px,1.4vw,16px);
+    overscroll-behavior:none;
+    padding-bottom:max(clamp(12px,2vw,22px),env(safe-area-inset-bottom));
+  }
+  .mono{font-family:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+  header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px}
+  .brand{justify-self:start}
+  .clock{justify-self:center}
+  .hbtns{justify-self:end}
+  @media (max-width:760px){header{display:flex;flex-wrap:wrap}.brand,.clock,.hbtns{justify-self:auto}.clock{align-items:flex-start}}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .txt{display:flex;flex-direction:column;line-height:1.18}
+  .brand b{font-weight:700;font-size:20px;letter-spacing:.01em;color:var(--gold)}
+  .brand span{color:var(--muted);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase}
+  .clock{display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1}
+  .clkmeta{display:flex;align-items:center;gap:8px;min-height:15px;flex-wrap:wrap;justify-content:center;max-width:min(40vw,260px)}
+  .clock .t{font-size:clamp(30px,5vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1}
+  .stepclock{display:flex;align-items:baseline;gap:7px;margin-top:2px;line-height:1;font-variant-numeric:tabular-nums}
+  .stepclock .sclbl{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .stepclock .scv{font-size:clamp(19px,2.7vw,27px);font-weight:600;color:var(--gold)}
+  .stepclock.urgent .scv,.stepclock.urgent .sclbl{color:var(--hr)}
+  .rec{display:none;align-items:center;gap:7px;color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .rec.run,.rec.pause,.rec.idle{display:inline-flex}
+  .recdot{width:8px;height:8px;border-radius:50%;background:#e0a200}
+  .rec.idle .recdot{background:#cfc8b4}
+  .rec.run .recdot{background:#e23b30;animation:blink 1.4s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .hbtns{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+  .hbtns button{padding:8px 13px}
+  .hbtns .modetab{padding:7px 13px}
+
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;
+    padding:9px 16px;font-weight:600;font-size:13px;background:var(--panel2);color:var(--ink);
+    transition:filter .15s,transform .05s,background .15s,opacity .15s}
+  button:hover{filter:brightness(.98)}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  button.primary{background:var(--gold-fill);color:#2a2206;border-color:transparent}
+  button.b-start{background:#3fae46;color:#fff;border-color:transparent}
+  button.b-stop{background:#e23b30;color:#fff;border-color:transparent}
+  button.b-lap{background:#fbf3dd;color:#7a5d0c;border-color:#ecd9a0}
+  button.b-start:hover,button.b-stop:hover,button.primary:hover{filter:brightness(1.07)}
+  button:disabled{opacity:.36;cursor:default;filter:none}
+  button.b-test{background:#1d1b13;color:#f1c232;border-color:#1d1b13}
+  button.b-test:hover{filter:brightness(1.15)}
+  .testpill{display:inline-flex;align-items:center;gap:6px;background:#fbf3dd;border:1px solid #ecd9a0;
+    color:#7a5d0c;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
+    max-width:100%;white-space:normal;text-align:center;line-height:1.3}
+  .protos{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+  .proto{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
+    background:#faf8f1;border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+  .proto:hover{border-color:var(--gold);filter:none}
+  .proto b{font-size:15px;color:var(--ink)}
+  .proto span{font-size:12.5px;color:var(--muted);font-weight:500}
+
+  /* ===== compacte verbindingen-balk + atletenbalk op één rij ===== */
+  .utilrow{display:flex;gap:clamp(10px,1.4vw,16px);align-items:stretch}
+  .utilrow>.connbar{flex:0 1 auto}
+  .utilrow>.rider{flex:1 1 300px}
+  @media (max-width:860px){.utilrow{flex-wrap:wrap}.utilrow>.connbar,.utilrow>.rider{flex:1 1 100%}}
+  .connbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 13px;box-shadow:var(--shadow)}
+  button.b-conn{background:#1d1b13;color:#f1c232;border-color:#1d1b13;padding:8px 14px}
+  button.b-help{position:fixed;z-index:40;
+    right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+    padding:8px 14px;font-size:12.5px;font-weight:600;border-radius:999px;opacity:.92;
+    background:var(--panel);color:var(--muted);border:1px solid var(--line);box-shadow:0 2px 10px rgba(28,26,18,.10)}
+  button.b-help:hover{opacity:1;color:var(--gold);border-color:var(--gold);filter:none}
+  .help-steps{list-style:none;counter-reset:h;display:flex;flex-direction:column;gap:9px;margin:16px 0}
+  .help-steps li{counter-increment:h;display:flex;gap:11px;font-size:14px;line-height:1.45}
+  .help-steps li::before{content:counter(h);flex:none;width:24px;height:24px;border-radius:50%;background:var(--gold-fill);
+    color:#2a2206;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .help-note{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:13px;color:#5b5440;line-height:1.55}
+  button.b-conn:hover{filter:brightness(1.15)}
+  .connpips{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .cpip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);font-weight:600}
+  #connModal .sensors{grid-template-columns:1fr}
+  .sensors{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .sensor{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 13px;box-shadow:var(--shadow)}
+  .sensor .lhs{display:flex;align-items:center;gap:10px;min-width:0}
+  .dot{width:9px;height:9px;border-radius:50%;background:#cfc8b4;flex:none;transition:background .3s,box-shadow .3s}
+  .dot.on{background:#3fae46;box-shadow:0 0 0 4px rgba(63,174,70,.16)}
+  .dot.warn{background:#e0a200;box-shadow:0 0 0 4px rgba(224,162,0,.18)}
+  .sensor .nm{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sensor .nm small{display:block;color:var(--muted);font-weight:500;font-size:11px;letter-spacing:.04em}
+  .sensor button{padding:7px 12px;font-size:12px}
+
+  .rider{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 15px;box-shadow:var(--shadow)}
+  .rider label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;letter-spacing:.02em}
+  .rider input{background:#faf8f1;border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:7px 9px;font:inherit;font-variant-numeric:tabular-nums}
+  .rider input#wkg,.rider input#ftp{width:78px}
+  .rider input#athlete{width:150px;font-variant-numeric:normal}
+  .rider input:focus{outline:none;border-color:var(--gold)}
+  .rider .rlabel{color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;margin-right:2px;align-self:center}
+  .r-test,.r-train{display:inline-flex;align-items:center;gap:10px}
+  button.b-athlete{background:#1d1b13;color:#f1c232;border-color:#1d1b13;padding:8px 14px}
+  button.b-athlete:hover{filter:brightness(1.15)}
+  .r-athname{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .ath-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .sheet textarea{display:block;margin-top:7px;width:100%;background:#faf8f1;border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical}
+  .sheet textarea:focus{outline:none;border-color:var(--gold)}
+  @media (max-width:560px){.ath-grid{grid-template-columns:1fr}}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .tile{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:16px 18px 17px;overflow:hidden;box-shadow:var(--shadow)}
+  .tile::before{content:"";position:absolute;left:0;top:0;height:3px;width:100%;background:var(--accent,#000);opacity:.95}
+  .tile .k{color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+  .tile .val{margin-top:7px;font-size:clamp(40px,6.6vw,72px);font-weight:600;line-height:.95;letter-spacing:-.02em;color:var(--accent,#1d1b13)}
+  .tile .val .u{font-size:.30em;font-weight:500;color:var(--muted);margin-left:.14em;letter-spacing:0}
+  .tile .sub{margin-top:9px;color:var(--muted);font-size:12.5px;min-height:16px}
+  .tile.stale .val{opacity:.32}
+  .tile.power{--accent:var(--pwr)} .tile.hr{--accent:var(--hr)}
+  .tile.cad{--accent:var(--cad)} .tile.core{--accent:var(--coreClr,#b7902a)}
+  .scale{margin-top:12px}
+  .track{position:relative;height:8px;border-radius:999px;
+    background:linear-gradient(90deg,#e8cf86,#ecb21f 36%,#ef8a2b 66%,#e0432f)}
+  .marker{position:absolute;top:50%;width:3px;height:18px;border-radius:2px;background:var(--ink);
+    transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(251,250,246,.95);left:0%;transition:left .6s ease}
+
+  [hidden]{display:none!important}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;
+    flex:1 1 auto;display:flex;flex-direction:column;min-height:300px;box-shadow:var(--shadow)}
+  .card.laps{flex:0 0 auto;min-height:0}
+  .card .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .card h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .chips{display:flex;gap:6px}
+  .chip{padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--panel2);
+    color:var(--muted);border:1px solid var(--line);cursor:pointer}
+  .chip.active{background:var(--gold-fill);color:#2a2206;border-color:transparent}
+  .chartwrap{position:relative;flex:1 1 auto;min-height:240px}
+  canvas{position:absolute;inset:0;width:100%;height:100%}
+
+  .laptable{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .lrow{display:grid;grid-template-columns:46px repeat(5,1fr);background:var(--panel)}
+  .lrow>div{padding:9px 11px;font-size:13px}
+  .lrow.head>div{color:var(--muted);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .lrow input.lac{width:100%;max-width:84px;background:#faf8f1;border:1px solid var(--line);color:var(--ink);
+    border-radius:7px;padding:5px 7px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums}
+  .lrow input.lac:focus{outline:none;border-color:var(--gold)}
+  .lrow input.lac::placeholder{color:#bcb39a}
+  .lacwrap{position:relative;height:220px;margin-top:2px}
+  #lacChart{position:absolute;inset:0;width:100%;height:100%}
+
+  .strip{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+  .s.tgt{--accent:var(--pwr)}
+  .s.tgt .v{color:var(--pwr)}
+  .s.tgt #pAct{color:var(--ink)}
+  .s{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px;box-shadow:var(--shadow)}
+  .s .k{color:var(--muted);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+  .s .v{margin-top:4px;font-size:20px;font-weight:600}
+  .s .v small{font-size:12px;color:var(--muted);font-weight:500}
+
+  footer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:2px}
+  footer .err{color:#c8261a;font-size:12px}
+  footer .sig{color:var(--gold);font-weight:600;letter-spacing:.04em;font-size:13.5px}
+
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(20,18,10,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50;padding:20px}
+  .modal.open{display:flex}
+  .sheet{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:24px 24px 18px;width:min(430px,100%);box-shadow:0 24px 70px rgba(20,18,10,.28);
+    max-height:calc(100vh - 36px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .sheet-h{font-size:19px;font-weight:700;color:var(--ink)}
+  .sheet-sub{margin-top:5px;color:var(--muted);font-size:13px}
+  .fld{display:block;margin-top:18px;color:var(--muted);font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+  .fld input{display:block;margin-top:7px;width:100%;background:#faf8f1;border:1px solid var(--line);
+    color:var(--ink);border-radius:10px;padding:12px 13px;font:inherit;font-size:15.5px}
+  .fld input:focus{outline:none;border-color:var(--gold)}
+  .fname{margin-top:11px;color:var(--muted);font-size:12.5px}
+  .fname span{color:var(--gold);font-weight:600;font-family:ui-monospace,monospace}
+  .mnote{color:#c8261a;font-size:12.5px;margin-top:9px;min-height:0}
+  .sheet-btns{display:flex;gap:10px;margin-top:18px}
+  .sheet-btns button{flex:1;padding:12px}
+  .linkbtn{display:block;margin:11px auto 2px;background:none;border:none;color:var(--muted);
+    font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
+  .linkbtn:hover{color:var(--ink);filter:none}
+  .sheet-x{position:absolute;top:13px;right:13px;width:30px;height:30px;padding:0;border-radius:8px;
+    background:transparent;border:none;color:var(--muted);font-size:21px;line-height:1;cursor:pointer}
+  .sheet-x:hover{background:var(--panel2);filter:none}
+
+  @media (max-width:900px){.tiles{grid-template-columns:repeat(2,1fr)}.strip{grid-template-columns:repeat(3,1fr)}.sensors{grid-template-columns:1fr}}
+  @media (max-width:560px){.strip{grid-template-columns:repeat(2,1fr)}.lrow{font-size:12px}}
+  button.b-end{background:#2f7d8f;color:#fff;border-color:transparent}
+  button.b-end:hover{filter:brightness(1.08)}
+  .dot.recon{background:#2f7d8f;box-shadow:0 0 0 4px rgba(47,125,143,.18);animation:blink 1s infinite}
+  .checklist{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+  .ck{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 10px;border-radius:9px;background:#faf8f1;border:1px solid var(--line)}
+  .ck .ckdot{width:9px;height:9px;border-radius:50%;flex:none;background:#cfc8b4}
+  .ck.ok .ckdot{background:#3fae46}.ck.no .ckdot{background:#e23b30}.ck.opt .ckdot{background:#e0a200}
+  .ck .ckst{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600}
+  .ck.ok .ckst{color:#3fae46}.ck.no .ckst{color:#e23b30}
+  .calrow{display:flex;align-items:center;gap:9px;margin-top:13px;font-size:13.5px;font-weight:600;cursor:pointer;user-select:none}
+  .calrow input{width:17px;height:17px;accent-color:var(--gold);cursor:pointer}
+  .sheet-wide{width:min(680px,100%)}
+  .anawrap{position:relative;height:340px;margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:12px}
+  #anaChart{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:ew-resize}
+  .ana-read{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+  .ana-read .b{flex:1 1 220px;background:#faf8f1;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .ana-read .b .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .ana-read .b .v{margin-top:4px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .ana-read .b.lt1{border-left:3px solid #3fae46}.ana-read .b.lt2{border-left:3px solid #e0762a}
+  .ana-read .b.lt1.active{background:#eef7ef;border-color:#2f9e44;box-shadow:0 0 0 1px #2f9e44 inset}
+  .ana-read .b.lt2.active{background:#fdf1e8;border-color:#e0762a;box-shadow:0 0 0 1px #e0762a inset}
+  .ana-note{color:var(--muted);font-size:12px;margin-top:9px}
+  #btnAna{padding:5px 12px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ===== modusschakelaar + vrij/training ===== */
+  .modeseg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .modetab{border:none;background:transparent;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;color:var(--muted)}
+  .modetab.active{background:var(--gold-fill);color:#2a2206}
+  .modetab:hover{filter:none}
+  .modetab:disabled{opacity:.5}
+  .trainctl{display:contents}
+  .trainpill{display:inline-flex;align-items:center;gap:6px;background:#eef3f4;border:1px solid #cfe0e3;
+    color:#2f6d7a;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+  button.b-train{background:#2f7d8f;color:#fff;border-color:transparent}
+  button.b-train:hover{filter:brightness(1.08)}
+  .freew{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
+  .freew input{width:64px;background:#faf8f1;border:1px solid var(--line);border-radius:9px;padding:8px 9px;font:inherit;font-variant-numeric:tabular-nums}
+  .freew input:focus{outline:none;border-color:var(--gold)}
+
+  /* ===== trainingsbouwer ===== */
+  .wkt-list{display:flex;flex-direction:column;gap:7px;margin-top:14px;max-height:42vh;overflow:auto}
+  .wkt-row{display:grid;grid-template-columns:10px minmax(82px,1fr) 58px 90px 50px 44px auto;gap:6px;align-items:center;
+    background:#faf8f1;border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+  .wkt-row .wbar{width:10px;height:26px;border-radius:3px}
+  .wkt-row select,.wkt-row input{background:#fff;border:1px solid var(--line);border-radius:7px;padding:6px 6px;
+    font:inherit;font-size:13px;font-variant-numeric:tabular-nums;width:100%;min-width:0}
+  .wkt-row input:focus,.wkt-row select:focus{outline:none;border-color:var(--gold)}
+  .wkt-row .wkt-w{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+  .wkt-val{display:flex;gap:4px;align-items:center;min-width:0}
+  .wkt-val input{flex:1 1 auto;width:auto;min-width:0;text-align:right}
+  .wkt-unit{flex:none;width:30px;padding:6px 0;font-size:12px;font-weight:700;border:1px solid var(--line);
+    border-radius:7px;background:var(--panel2);color:var(--gold);line-height:1;cursor:pointer}
+  .wkt-unit:hover{filter:none;border-color:var(--gold)}
+  .wkt-acts{display:flex;gap:3px}
+  .wkt-acts button{padding:5px 7px;font-size:12px;border-radius:7px;line-height:1}
+  .wkt-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .wkt-add button{padding:8px 12px;font-size:12.5px}
+  .wkt-int{margin-top:12px;background:#f1ede3;border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+  .wkt-int-head{font-size:12px;font-weight:700;color:#5a4407;letter-spacing:.02em;margin-bottom:10px}
+  .int-reps{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px;font-weight:600;margin-bottom:10px}
+  .int-reps input{width:70px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font:inherit;font-variant-numeric:tabular-nums}
+  .int-bhead{display:grid;grid-template-columns:14px minmax(90px,1fr) 64px 104px 30px;gap:7px;
+    font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 2px 2px}
+  .int-bhead span:nth-child(1){grid-column:2}
+  .int-blocks{display:flex;flex-direction:column;gap:7px}
+  .int-blk{display:grid;grid-template-columns:14px minmax(90px,1fr) 64px 104px 30px;gap:7px;align-items:center;
+    background:#fbfaf6;border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+  .int-blk .int-blk-num{font-size:12px;font-weight:700;color:var(--muted);text-align:center}
+  .int-blk select,.int-blk input{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 7px;
+    font:inherit;font-size:13px;font-variant-numeric:tabular-nums;width:100%;min-width:0}
+  .int-blk input:focus,.int-blk select:focus,.int-reps input:focus{outline:none;border-color:var(--gold)}
+  .int-rm{padding:5px 0;font-size:12px;border-radius:7px;line-height:1}
+  .int-addrow{margin-top:9px}
+  .int-addrow button{padding:7px 12px;font-size:12.5px;border-radius:8px;background:#fff;border:1px dashed #dca73f;color:#9a5a14;font-weight:600}
+  .int-addrow button:hover{filter:none;background:#fdf6e7}
+  @media (max-width:560px){.int-bhead{display:none}.int-blk{grid-template-columns:14px 1fr 56px 92px 28px}}
+  .valunit{display:flex;gap:5px;align-items:center}
+  .valunit input{flex:1 1 auto;min-width:0;text-align:right}
+  .valunit .wkt-unit{flex:none;width:34px}
+  /* set-groep in de bouwer */
+  .wkt-set{display:flex;flex-direction:column;gap:7px;padding:9px;border:1px dashed #dca73f;border-radius:12px;background:rgba(224,118,42,.06)}
+  .wkt-set-head{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9a5a14}
+  .wsh-rep{display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;font-weight:600;color:#9a5a14}
+  .wsh-rep input{width:48px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:5px 6px;font:inherit;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+  .wsh-rep input:focus{outline:none;border-color:var(--gold)}
+  .wsh-acts{display:flex;gap:3px;margin-left:auto}
+  .wsh-acts button{padding:5px 8px;font-size:12px;border-radius:7px;line-height:1}
+  .wkt-setfoot{display:flex}
+  .wkt-setfoot button{padding:6px 11px;font-size:12px;font-weight:600;border-radius:8px;background:#fff;border:1px dashed #dca73f;color:#9a5a14}
+  .wkt-setfoot button:hover{filter:none;background:#fdf6e7}
+  .wkt-prev{height:50px;margin-top:12px;background:#faf8f1;border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden}
+  .wkt-tot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:11px;font-size:13px;color:var(--muted);font-weight:600}
+  .proto.sel{border-color:var(--gold);background:#fbf3dd}
+  .customproto{margin-top:10px;background:#f1ede3;border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+  .cp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .cp-grid label{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:10.5px;letter-spacing:.03em}
+  .cp-grid input{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font:inherit;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .cp-grid input:focus{outline:none;border-color:var(--gold)}
+  #cpLoad{margin-top:12px;width:100%;padding:11px}
+  @media (max-width:560px){.wkt-row{grid-template-columns:10px 1fr 58px 88px auto}.wkt-row input[data-f="cad"],.wkt-row .wkt-w{display:none}.int-blocks{grid-template-columns:1fr}.cp-grid{grid-template-columns:repeat(2,1fr)}}
+
+  /* ===== melding (bv. geen Web Bluetooth op iPad) ===== */
+  .notice{display:flex;align-items:flex-start;gap:12px;background:#fbf3dd;border:1px solid #ecd9a0;
+    color:#6f5409;border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.45;box-shadow:var(--shadow)}
+  .notice b{color:#5a4407}
+  .notice .ntxt{flex:1 1 auto}
+  .notice a{color:var(--gold);font-weight:700}
+  .notice .nx{flex:none;width:30px;height:30px;padding:0;border-radius:8px;background:transparent;border:none;
+    color:#6f5409;font-size:20px;line-height:1;cursor:pointer}
+  .notice .nx:hover{background:#f3e7c4;filter:none}
+
+  /* ===== touch (iPad): grotere raakvlakken + geen focus-zoom ===== */
+  @media (pointer:coarse){
+    button{min-height:44px}
+    .hbtns button{min-height:44px}
+    .hbtns .modetab{min-height:42px}
+    .sensor button{min-height:42px}
+    .chip{min-height:38px;display:inline-flex;align-items:center}
+    .wkt-acts button{min-height:38px;min-width:38px;padding:7px 9px}
+    .sheet-btns button{min-height:46px}
+    /* iOS zoomt in op velden met font <16px; daarom forceren we 16px op touch */
+    input,select,textarea{font-size:16px}
+    .lrow input.lac,.wkt-row input,.wkt-row select{font-size:16px}
+  }
+</style>
+</head>
+<body id="body">
+
+  <button id="btnHelp" class="b-help" title="Snelstart / uitleg">? Uitleg</button>
+
+  <div class="notice" id="btNotice" hidden>
+    <div class="ntxt" id="btNoticeTxt"></div>
+    <button class="nx" id="btNoticeX" aria-label="Sluiten">&times;</button>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="txt"><b>Vandenbroucke Coaching</b><span>indoor training</span></div>
+    </div>
+    <div class="clock">
+      <div class="clkmeta">
+        <span class="rec" id="rec"><span class="recdot"></span><span class="lbl"></span></span>
+        <span class="testpill" id="testPill" hidden></span>
+      </div>
+      <span class="t mono" id="clock">0:00</span>
+      <div class="stepclock" id="stepClock" hidden><span class="scv mono" id="stepClockVal">0:00</span></div>
+    </div>
+    <div class="hbtns">
+      <button id="btnTest" class="b-test" hidden>Inspanningstest</button>
+      <span class="trainctl" id="trainCtl">
+        <button id="btnBuild" class="b-train">Training opbouwen</button>
+        <button id="btnImport">Importeer .fit</button>
+        <button id="btnFree">Vrij fietsen</button>
+        <label class="freew" title="Vast ERG-vermogen tijdens vrij fietsen — leeg = geen ERG (vlak)">ERG <input id="freeW" class="mono" type="number" min="0" max="2000" step="5" placeholder="W"></label>
+      </span>
+      <button id="btnStart" class="b-start">Start</button>
+      <button id="btnPause" class="b-pause" disabled>Pauze</button>
+      <button id="btnLap" class="b-lap" disabled>Ronde</button>
+      <button id="btnEnd" class="b-end" hidden disabled>Einde test</button>
+      <button id="btnStop" class="b-stop" disabled>Stop</button>
+      <input type="file" id="fitFile" accept=".fit" hidden>
+    </div>
+  </header>
+
+  <div class="utilrow">
+    <div class="connbar">
+      <button id="btnConn" class="b-conn">&#8646; Verbindingen</button>
+      <span class="connpips">
+        <span class="cpip"><span class="dot" id="cdot-pwr"></span>Vermogen</span>
+        <span class="cpip"><span class="dot" id="cdot-hr"></span>Hartslag</span>
+        <span class="cpip"><span class="dot" id="cdot-core"></span>CORE</span>
+        <span class="cpip"><span class="dot" id="cdot-trn"></span>KICKR</span>
+      </span>
+    </div>
+    <div class="rider" id="rider">
+      <span class="r-test" hidden><button id="btnAthlete" class="b-athlete">&#128100; Atleetgegevens</button><span class="r-athname" id="rAthName"></span></span>
+      <label class="r-train"><span class="rlabel">FTP</span><input id="ftp" class="mono" type="number" min="50" max="600" step="1" placeholder="bv. 250"></label>
+    </div>
+  </div>
+
+  <div class="modal" id="helpModal">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Snelstart">
+      <button class="sheet-x" id="helpX" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Snelstart</div>
+      <ol class="help-steps">
+        <li><span>Open in <b>Chrome</b> of <b>Edge</b>. Op iPad/iPhone: de app <b>Bluefy</b> (Safari werkt niet voor de sensoren).</span></li>
+        <li><span>Tik op <b>&#8646; Verbindingen</b> en verbind je trainer + hartslag.</span></li>
+        <li><span>Vul je <b>FTP</b> in.</span></li>
+        <li><span>Kies <b>Vrij fietsen</b>, <b>Training opbouwen</b> of <b>Importeer .fit</b> &mdash; druk dan <b>Start</b>.</span></li>
+      </ol>
+      <div class="help-note"><b>Tijdens:</b> de aftelklok telt af tot het volgende blok; "Doel &middot; actueel" toont je doel naast je echte vermogen.<br><b>Na de rit:</b> Stop &rarr; <b>Export .fit</b> &rarr; upload naar Strava, Garmin of intervals.icu.</div>
+      <div class="sheet-btns"><button id="helpOk" class="primary">Aan de slag</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="connModal">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Verbindingen">
+      <button class="sheet-x" id="connX" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Verbindingen</div>
+      <div class="sheet-sub">Verbind je sensoren en de trainer via Bluetooth. Eenmaal verbonden kan je dit venster sluiten.</div>
+      <div class="sensors">
+        <div class="sensor"><div class="lhs"><span class="dot" id="dot-pwr"></span>
+          <div class="nm" id="nm-pwr">Vermogen<small>niet verbonden</small></div></div>
+          <button data-k="pwr">Verbinden</button></div>
+        <div class="sensor"><div class="lhs"><span class="dot" id="dot-hr"></span>
+          <div class="nm" id="nm-hr">Hartslag<small>niet verbonden</small></div></div>
+          <button data-k="hr">Verbinden</button></div>
+        <div class="sensor"><div class="lhs"><span class="dot" id="dot-core"></span>
+          <div class="nm" id="nm-core">CORE temp<small>niet verbonden</small></div></div>
+          <button data-k="core">Verbinden</button></div>
+        <div class="sensor"><div class="lhs"><span class="dot" id="dot-trn"></span>
+          <div class="nm" id="nm-trn">Trainer (KICKR)<small>niet verbonden</small></div></div>
+          <button data-k="trn">Verbinden</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile power stale">
+      <div class="k">Vermogen</div>
+      <div class="val mono"><span id="pwr">&ndash;</span><span class="u">W</span></div>
+      <div class="sub mono" id="pwrSub">3s &ndash; &middot; gem &ndash; &middot; max &ndash;</div>
+    </div>
+    <div class="tile hr stale">
+      <div class="k">Hartslag</div>
+      <div class="val mono"><span id="hr">&ndash;</span><span class="u">bpm</span></div>
+      <div class="sub mono" id="hrSub">gem &ndash; &middot; max &ndash;</div>
+    </div>
+    <div class="tile cad stale">
+      <div class="k">Cadans</div>
+      <div class="val mono"><span id="cad">&ndash;</span><span class="u">rpm</span></div>
+      <div class="sub mono" id="cadSub">gem &ndash;</div>
+    </div>
+    <div class="tile core stale">
+      <div class="k">Kerntemperatuur</div>
+      <div class="val mono"><span id="core">&ndash;</span><span class="u">&deg;C</span></div>
+      <div class="sub" id="coreSub">&mdash;</div>
+      <div class="scale"><div class="track"><div class="marker" id="marker"></div></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="top">
+      <h2 id="chartTitle">Verloop</h2>
+      <div class="chips">
+        <span class="chip active" data-mode="phys">Vermogen + HS</span>
+        <span class="chip" data-mode="core">Kern &deg;C</span>
+        <span class="chip" data-mode="cad">Cadans</span>
+      </div>
+    </div>
+    <div class="chartwrap"><canvas id="chart"></canvas></div>
+  </div>
+
+  <div class="card laps" id="lapsCard" hidden>
+    <div class="top"><h2>Rondes &middot; Pw:Hr = aerobe decoupling</h2></div>
+    <div class="laptable" id="lapTable"></div>
+  </div>
+
+  <div class="card laps" id="lacCard" hidden>
+    <div class="top"><h2>Lactaatcurve &middot; mmol/l vs. vermogen</h2><button id="btnAna" class="chip">Analyse</button></div>
+    <div class="lacwrap"><canvas id="lacChart"></canvas></div>
+  </div>
+
+  <div class="strip">
+    <div class="s tgt"><div class="k">Doel &middot; actueel</div><div class="v mono"><span id="pTgt">&ndash;</span> &middot; <span id="pAct">&ndash;</span><small> W</small></div></div>
+    <div class="s"><div class="k">3s vermogen</div><div class="v mono"><span id="p3">&ndash;</span><small> W</small></div></div>
+    <div class="s"><div class="k">W/kg</div><div class="v mono"><span id="wpk">&ndash;</span></div></div>
+    <div class="s"><div class="k">%FTP &middot; zone</div><div class="v mono" id="zone">&ndash;</div></div>
+    <div class="s"><div class="k">Max vermogen</div><div class="v mono"><span id="pMax">&ndash;</span><small> W</small></div></div>
+    <div class="s"><div class="k">Max HS</div><div class="v mono"><span id="hMax">&ndash;</span><small> bpm</small></div></div>
+    <div class="s"><div class="k">Max kern</div><div class="v mono"><span id="cMax">&ndash;</span><small> &deg;C</small></div></div>
+  </div>
+
+  <footer>
+    <span id="errline" class="err"></span>
+    <span class="sig">&copy; Sven Vandenbroucke</span>
+  </footer>
+
+  <div class="modal" id="modal">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Sessie gestopt">
+      <button class="sheet-x" id="mClose" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Sessie gestopt</div>
+      <div class="sheet-sub">Duur <span id="mDur" class="mono">0:00</span></div>
+      <label class="fld">Naam atleet
+        <input id="athlete2" type="text" placeholder="bv. Jan Janssens" autocomplete="off">
+      </label>
+      <div class="fname">Bestandsnaam: <span id="fnamePreview">test.fit</span></div>
+      <div class="mnote" id="mNote"></div>
+      <div class="sheet-btns">
+        <button id="mReset">Reset test</button>
+        <button id="mExport" class="primary">Export .fit</button>
+      </div>
+      <button id="mCsv" class="linkbtn">of downloaden als .csv</button>
+    </div>
+  </div>
+
+  <div class="modal" id="athleteModal">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Atleetgegevens">
+      <button class="sheet-x" id="athX" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Atleetgegevens</div>
+      <div class="sheet-sub">Voor het testverslag. FTP vul je niet in &mdash; die wordt uit de test berekend.</div>
+      <label class="fld">Naam<input id="athlete" type="text" placeholder="bv. Jan Janssens" autocomplete="off"></label>
+      <div class="ath-grid">
+        <label class="fld">Lengte (cm)<input id="athH" type="number" min="100" max="230" step="1" placeholder="bv. 180"></label>
+        <label class="fld">Gewicht (kg)<input id="wkg" type="number" min="20" max="150" step="0.1" placeholder="bv. 72"></label>
+        <label class="fld">Geboortedatum<input id="athDob" type="date"></label>
+      </div>
+      <label class="fld">Overige info<textarea id="athInfo" rows="3" placeholder="bv. discipline, doel, opmerkingen"></textarea></label>
+      <div class="sheet-btns"><button id="athSave" class="primary">Bewaar</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="protoModal">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Inspanningstest">
+      <button class="sheet-x" id="pmClose" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Inspanningstest &mdash; controle &amp; protocol</div>
+      <div class="sheet-sub">Loop de checklist na, bevestig de kalibratie en kies een protocol. De test start pas wanneer je daarna op Start drukt.</div>
+      <div class="checklist" id="pmCheck"></div>
+      <label class="calrow"><input type="checkbox" id="calChk"> KICKR gekalibreerd &amp; opgewarmd</label>
+      <div class="mnote" id="pmWarn"></div>
+      <div class="protos">
+        <button class="proto" data-p="basic"><b>Basic</b><span>10' opwarming @ 60 W &middot; start 80 W &middot; +30 W per 4'</span></button>
+        <button class="proto" data-p="moderate"><b>Moderate</b><span>10' opwarming @ 90 W &middot; start 120 W &middot; +30 W per 4'</span></button>
+        <button class="proto" data-p="pro"><b>Pro</b><span>10' opwarming @ 120 W &middot; start 160 W &middot; +30 W per 4'</span></button>
+        <button class="proto" data-p="custom"><b>Aanpasbaar</b><span>stel zelf opwarming, start, stapgrootte &amp; stapduur in</span></button>
+      </div>
+      <div class="customproto" id="customProto" hidden>
+        <div class="cp-grid">
+          <label>Opwarming (W)<input id="cpWarmW" type="number" min="0" max="600" step="5" value="90"></label>
+          <label>Opwarming (min)<input id="cpWarmM" type="number" min="0" max="60" step="1" value="10"></label>
+          <label>Startvermogen (W)<input id="cpStartW" type="number" min="0" max="800" step="5" value="120"></label>
+          <label>Stap (W)<input id="cpStepW" type="number" min="5" max="100" step="5" value="30"></label>
+          <label>Stapduur (min)<input id="cpStepM" type="number" min="1" max="20" step="0.5" value="4"></label>
+        </div>
+        <button id="cpLoad" class="primary">Laad aanpasbaar protocol</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="lacModal">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Lactaat en RPE">
+      <button class="sheet-x" id="lacX" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h" id="lacTitle">Lactaat &amp; RPE</div>
+      <div class="sheet-sub" id="lacSub">Geef de waarde van de afgelopen stap in.</div>
+      <label class="fld">Lactaat (mmol/l)
+        <input id="lacIn" type="number" step="0.1" min="0" max="30" inputmode="decimal" placeholder="bv. 2.4">
+      </label>
+      <label class="fld">RPE (Borg 6&ndash;20)
+        <input id="rpeIn" type="number" step="1" min="6" max="20" inputmode="numeric" placeholder="6&ndash;20">
+      </label>
+      <div class="sheet-btns">
+        <button id="lacLater">Later</button>
+        <button id="lacSave" class="primary">Bewaar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="anaModal">
+    <div class="sheet sheet-wide" role="dialog" aria-modal="true" aria-label="Analyse drempels">
+      <button class="sheet-x" id="anaX" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Analyse &middot; lactaatdrempels</div>
+      <div class="sheet-sub">Sleep de lijnen om LT1/LT2 bij te stellen. De atleet doet intussen de cooldown.</div>
+      <div class="anawrap"><canvas id="anaChart"></canvas></div>
+      <div class="ana-read" id="anaRead"></div>
+      <div class="ana-note" id="anaNote"></div>
+      <div class="sheet-btns">
+        <button id="anaReset">Auto opnieuw</button>
+        <button id="anaSave" class="primary">Bewaar drempels</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="buildModal">
+    <div class="sheet sheet-wide" role="dialog" aria-modal="true" aria-label="Training opbouwen">
+      <button class="sheet-x" id="bmClose" aria-label="Sluiten">&times;</button>
+      <div class="sheet-h">Training opbouwen</div>
+      <div class="sheet-sub">Voeg blokken toe. Doel per blok in <b>watt</b> &mdash; tik op de <b>W</b>-knop voor %FTP. FTP: <span id="bmFtp">&ndash;</span>.</div>
+      <div class="wkt-list" id="wktList"></div>
+      <div class="wkt-add">
+        <button id="bmAdd">+ Blok</button>
+        <button id="bmAddInt">+ Interval-blok</button>
+        <button id="bmClear">Leegmaken</button>
+      </div>
+      <div class="wkt-int" id="wktInt" hidden>
+        <div class="wkt-int-head">Interval-set &mdash; herhaalde blokken</div>
+        <label class="int-reps">Aantal herhalingen<input id="intN" type="number" min="1" max="40" step="1" value="4"></label>
+        <div class="int-bhead"><span>Type</span><span>Duur</span><span>Doel</span></div>
+        <div class="int-blocks" id="intBlocks"></div>
+        <div class="int-addrow"><button id="intAddBlk" type="button">+ blok</button></div>
+        <div class="sheet-btns">
+          <button id="intCancel">Annuleer</button>
+          <button id="intAdd" class="primary">Voeg set toe</button>
+        </div>
+      </div>
+      <div class="wkt-prev" id="wktPrev"></div>
+      <div class="wkt-tot"><span id="wktTot">Totaal 0:00</span><span id="bmWarn" class="mnote"></span></div>
+      <div class="sheet-btns">
+        <button id="bmCancel">Annuleer</button>
+        <button id="bmSave" class="primary">Laad training</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===== BLE profielen ===== */
+const CORE_SERVICE='00002100-5b1e-4347-b07c-97b514dae121';
+const HTS=0x1809, TEMP_MEAS=0x2a1c;
+const CPS=0x1818, CPM=0x2a63;
+const HRS=0x180d, HRM=0x2a37;
+const FTMS=0x1826, FT_CP=0x2ad9, FT_IBD=0x2ad2;
+const PROTO={ basic:{name:'Basic',warmupW:60,startW:80}, moderate:{name:'Moderate',warmupW:90,startW:120}, pro:{name:'Pro',warmupW:120,startW:160} };
+const WARM_S=600, STEP_S=240, STEP_W=30;
+
+const BANDS=[
+  {max:37.5,name:'Opwarmen',color:'#b7902a'},
+  {max:38.5,name:'Warmte opbouwen',color:'#d39b12'},
+  {max:39.5,name:'Hitte-trainingszone',color:'#e07a18'},
+  {max:Infinity,name:'Hoog \u2014 gas terug',color:'#d63422'},
+];
+const TMIN=36,TMAX=41;
+const KEEP_S=4*3600, STALE_MS=4000, CORE_STALE_MS=15000;
+const MONTHS=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const LS_KEY='vc_train_session_v1';   /* aparte opslag van de test-versie */
+
+const $=id=>document.getElementById(id);
+function bandFor(v){for(const b of BANDS)if(v<b.max)return b;}
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
+function fmtClock(sec){sec=Math.max(0,Math.floor(sec));const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  return h>0? h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0') : m+':'+String(s).padStart(2,'0');}
+function niceTimeStep(span){const c=[10,15,20,30,60,120,300,600,900,1200,1800,3600,7200];for(const st of c){if(span/st<=7)return st;}return 7200;}
+
+/* ===== sessiestaat ===== */
+let state='idle';
+let runningSince=0, accumulated=0, startedAtMs=null;
+let chartMode='phys';
+let laps=[], lapStart=0;
+function running(){return state==='running';}
+function elapsed(){return accumulated + (state==='running'?(Date.now()-runningSince)/1000:0);}
+
+const cur={pwr:null,hr:null,cad:null,core:null};
+const lastRx={pwr:0,hr:0,core:0,trn:0};
+const stat={pwr:{sum:0,n:0,max:0},hr:{sum:0,n:0,max:0},cad:{sum:0,n:0},core:{max:0}};
+const series={pwr:[],hr:[],cad:[],core:[]};
+const log=[];
+let prevCrank=null, lastRevChangeMs=0;
+const dev={pwr:null,hr:null,core:null};
+let trnDev=null, ctrlChar=null, trainerPower=false, ergW=null;
+let proto=null, lastPhase=null;
+let writeChain=Promise.resolve();
+let ergWarned=false;
+let testSession=false;
+let mode='train';             /* deze versie is enkel training; inspanningstest ontbreekt */
+let workout=null;             /* array van segmenten in train-modus; null = vrij fietsen */
+let workoutName='';           /* naam van gebouwde/geladen training */
+let freeWatt=null;            /* vast ERG-vermogen tijdens vrij fietsen (null = geen ERG, vlak) */
+let stepsEndAt=null;          /* elapsed-sec waarop de stappen eindigen -> cooldown begint */
+let wakeLock=null;            /* scherm wakker houden tijdens test */
+let audioCtx=null;            /* Web Audio voor piepjes */
+const beepFired={};           /* {faseKey: Set reeds gepiepte resterende seconden} */
+let lt1=null, lt2=null;       /* drempels {p,lac,hr} uit de analyse */
+let promptLapIdx=null;        /* welke ronde de lactaat/RPE-pop-up invult */
+let pendingAnalysis=false;    /* open analyse na de laatste lactaat-ingave */
+const manualOff={};           /* {k:true} bij bewuste loskoppeling sensor */
+const recon={};               /* {k:true} terwijl een sensor herverbindt */
+let trnManualOff=false;       /* idem voor trainer */
+const COOL_S=600;             /* cooldown 10 min */
+
+const SENSORS={
+  pwr :{filter:[CPS],svc:CPS,chr:CPM,label:'Vermogen',onValue:onPower},
+  hr  :{filter:[HRS],svc:HRS,chr:HRM,label:'Hartslag',onValue:onHR},
+  core:{filter:[CORE_SERVICE],svc:HTS,chr:TEMP_MEAS,label:'CORE temp',onValue:onCore},
+};
+
+/* ===== parsers ===== */
+function onHR(e){const dv=e.target.value;const f=dv.getUint8(0);
+  const v=(f&0x01)?dv.getUint16(1,true):dv.getUint8(1);
+  if(v<25||v>240)return; cur.hr=v; lastRx.hr=Date.now();
+  if(running()){stat.hr.sum+=v;stat.hr.n++;stat.hr.max=Math.max(stat.hr.max,v);push('hr',v);}}
+
+function onPower(e){ if(trainerPower)return; const dv=e.target.value;const flags=dv.getUint16(0,true);let o=2;
+  let p=dv.getInt16(o,true);o+=2; p=Math.max(0,p);
+  cur.pwr=p; lastRx.pwr=Date.now();
+  if(running()){stat.pwr.sum+=p;stat.pwr.n++;stat.pwr.max=Math.max(stat.pwr.max,p);push('pwr',p);}
+  if(flags&0x01)o+=1; if(flags&0x04)o+=2; if(flags&0x10)o+=6;
+  if(flags&0x20){const revs=dv.getUint16(o,true),evt=dv.getUint16(o+2,true);
+    if(prevCrank){const dR=(revs-prevCrank.revs)&0xffff,dT=((evt-prevCrank.evt)&0xffff)/1024;
+      if(dT>0&&dR>0){const rpm=Math.round(dR/dT*60);
+        if(rpm>=0&&rpm<250){cur.cad=rpm;lastRevChangeMs=Date.now();
+          if(running()){stat.cad.sum+=rpm;stat.cad.n++;push('cad',rpm);}}}}
+    prevCrank={revs,evt};}
+}
+
+function onCore(e){const dv=e.target.value;const flags=dv.getUint8(0);const raw=dv.getUint32(1,true);
+  let m=raw&0x00ffffff,ex=raw>>>24; if(m&0x00800000)m-=0x01000000; if(ex&0x80)ex-=0x100;
+  if(m===0x007fffff||m===0x00800000)return;
+  let v=m*Math.pow(10,ex); if(flags&0x01)v=(v-32)*5/9;
+  if(v<20||v>45)return; cur.core=v; lastRx.core=Date.now();
+  if(running()){stat.core.max=Math.max(stat.core.max,v);push('core',v);}}
+
+function push(k,v){const t=elapsed();series[k].push({t,v});
+  const cut=t-KEEP_S; while(series[k].length&&series[k][0].t<cut)series[k].shift();}
+
+function avg(s){return s.n?s.sum/s.n:null;}
+function fmt(v,d){return v==null?'\u2013':v.toFixed(d);}
+
+/* ===== besturing ===== */
+function following(){ return (mode==='test'&&proto!=null)||(mode==='train'&&(workout!=null||freeWatt>0)); }
+function start(){ if(state==='running')return; ensureAudio(); reqWake();
+  if(accumulated===0 && startedAtMs==null) startedAtMs=Date.now();
+  runningSince=Date.now(); state='running'; applyCurrentTarget();
+  const adv=[];
+  if(following()&&!ctrlChar) adv.push('geen trainer (KICKR) verbonden — vermogen wordt niet opgelegd');
+  if(mode==='test'&&proto&&!dev.hr) adv.push('geen hartslag verbonden — aanbevolen voor een test');
+  if(adv.length) fail('Let op: '+adv.join(' · '));
+  updateControls(); saveState(); }
+function pause(){ if(state!=='running')return; relWake();
+  accumulated+=(Date.now()-runningSince)/1000; state='paused'; prevCrank=null;
+  if(ctrlChar&&following())setTargetPower(0); updateControls(); saveState(); }
+function stop(){ if(state==='idle')return; relWake();
+  if(state==='running'){accumulated+=(Date.now()-runningSince)/1000;}
+  state='paused'; prevCrank=null; markLap(); if(ctrlChar&&following())setTargetPower(0);
+  if(mode==='test')proto=null; lastPhase=null; updateControls(); saveState(); openModal(); }
+function resetAll(){ relWake(); state='idle'; accumulated=0; runningSince=0; startedAtMs=null;
+  laps=[]; lapStart=0; proto=null; lastPhase=null; testSession=false; stepsEndAt=null; lt1=null; lt2=null;
+  for(const k in beepFired)delete beepFired[k]; if(ctrlChar)setTargetPower(0);
+  for(const k in series)series[k].length=0; log.length=0; prevCrank=null;
+  Object.assign(stat,{pwr:{sum:0,n:0,max:0},hr:{sum:0,n:0,max:0},cad:{sum:0,n:0},core:{max:0}});
+  cur.pwr=cur.hr=cur.cad=cur.core=null;
+  try{localStorage.removeItem(LS_KEY);}catch(e){}
+  renderLaps(); drawLactate(); updateControls(); render(); draw(); }
+
+function updateControls(){
+  const isTest=mode==='test';
+  $('btnStart').disabled=(state==='running');
+  $('btnPause').disabled=(state!=='running');
+  $('btnLap').disabled=(state!=='running'||(isTest&&proto!=null));
+  const showEnd=(isTest&&state==='running'&&proto!=null&&stepsEndAt==null); $('btnEnd').hidden=!showEnd; $('btnEnd').disabled=!showEnd;
+  $('btnStop').disabled=(state==='idle');
+  $('btnTest').disabled=(state!=='idle'); $('btnTest').hidden=!isTest;
+  $('trainCtl').hidden=isTest;
+  document.querySelectorAll('.r-test').forEach(e=>e.hidden=!isTest);   /* test: atleetgegevens-knop */
+  document.querySelectorAll('.r-train').forEach(e=>e.hidden=isTest);   /* training: enkel FTP */
+  document.querySelectorAll('.modetab').forEach(b=>{ b.classList.toggle('active',b.dataset.mode===mode); b.disabled=(state!=='idle'); });
+  let st='Start';
+  if(state==='paused')st='Hervat';
+  else if(isTest&&proto)st='Start test';
+  else if(!isTest&&workout)st='Start training';
+  $('btnStart').textContent=st;
+  const rec=$('rec'); rec.className='rec '+(state==='running'?'run':state==='paused'?'pause':'idle');
+  rec.querySelector('.lbl').textContent=(state==='running'?'Opname':state==='paused'?'Gepauzeerd':'Klaar');
+}
+
+/* ===== trainer / ERG / protocol ===== */
+function cpWrite(bytes){ if(!ctrlChar)return Promise.resolve();
+  writeChain=writeChain.then(()=>{const fn=ctrlChar.writeValueWithResponse?'writeValueWithResponse':'writeValue';
+    return ctrlChar[fn](new Uint8Array(bytes));})
+    .catch(()=>{ if(!ergWarned){ergWarned=true; fail('ERG-besturing reageert niet \u2014 ondersteunt de trainer FTMS-besturing?');} });
+  return writeChain; }
+function setTargetPower(w){ w=Math.max(0,Math.min(2000,Math.round(w))); ergW=w; cpWrite([0x05,w&0xFF,(w>>8)&0xFF]); }
+/* vrij fietsen: FTMS Set Simulation Parameters, vlak parcours (0% helling) — KICKR-schrijfpad, te testen op trainer */
+function setFreeRide(){ if(!ctrlChar)return; cpWrite([0x11, 0,0, 0,0, 0, 0]); }
+
+/* ===== training-segmentmodel (train-modus) ===== */
+const SEGDEF=[['warm','Opwarming',55],['work','Interval',110],['rest','Herstel',50],['steady','Steady',65],['cool','Cooldown',50]];
+const SEGNAME={warm:'Opwarming',work:'Interval',rest:'Herstel',steady:'Steady',cool:'Cooldown',done:'Klaar'};
+const SEGCOL={warm:'#c8930f',work:'#e0762a',rest:'#3fae46',steady:'#c79a2e',cool:'#2f8f86',step:'#e0762a',free:'#c79a2e',done:'#8a8268'};
+function segKindName(k){return SEGNAME[k]||'Blok';}
+function ftpVal(){const f=parseFloat($('ftp').value);return f>0?f:null;}
+function segWatt(seg){ if(seg.w!=null)return seg.w; const f=ftpVal(); return (seg.pct!=null&&f)?Math.round(seg.pct/100*f):0; }
+function workoutTotal(){ return workout?workout.reduce((s,seg)=>s+seg.dur,0):0; }
+function segmentAt(t){ if(!workout||!workout.length)return null; let acc=0;
+  for(let i=0;i<workout.length;i++){ const seg=workout[i], end=acc+seg.dur;
+    if(t<end)return {key:'wk'+i,idx:i,power:segWatt(seg),label:seg.label||segKindName(seg.kind),endAt:end,kind:seg.kind,cad:seg.cad};
+    acc=end; }
+  return {key:'wkdone',idx:-1,power:0,label:'Klaar',endAt:Infinity,kind:'done'}; }
+function planTargetAt(t){ if(mode==='test'&&proto)return stepFor(t); if(mode==='train'&&workout)return segmentAt(t);
+  if(mode==='train'&&!workout&&freeWatt>0)return {key:'free',power:freeWatt,label:'Vrij',endAt:Infinity,kind:'free'};
+  return null; }
+/* horizon van het getoonde plan op de grafiek (training = totale duur; test = open einde -> opwarming + stappen vooruit) */
+function planHorizon(){
+  if(mode==='train'&&workout)return workoutTotal();
+  if(mode==='test'&&proto){ const warmS=proto.warmS||WARM_S, stepS=proto.stepS||STEP_S;
+    if(stepsEndAt!=null)return stepsEndAt+COOL_S;
+    return Math.max(warmS+6*stepS, elapsed()+stepS); }
+  return 0; }
+function stepFor(t){
+  const warmS=proto.warmS||WARM_S, stepS=proto.stepS||STEP_S, stepW=proto.stepW||STEP_W;
+  if(stepsEndAt!=null && t>=stepsEndAt){ const cdEnd=stepsEndAt+COOL_S;
+    return t<cdEnd ? {key:'cd',power:proto.startW,label:'Cooldown',endAt:cdEnd,kind:'cool'}   /* cooldown = startvermogen */
+                   : {key:'done',power:0,label:'Klaar',endAt:Infinity,kind:'done'}; }
+  if(t<warmS)return {key:'w',power:proto.warmupW,label:'Opwarming',endAt:warmS,kind:'warm'};
+  const i=Math.floor((t-warmS)/stepS);
+  return {key:'s'+i,power:proto.startW+i*stepW,label:'Stap '+(i+1),endAt:warmS+(i+1)*stepS,kind:'step'}; }
+function applyCurrentTarget(){ if(!ctrlChar)return; const ph=planTargetAt(elapsed());
+  if(ph)setTargetPower(ph.power); else if(mode==='train')setFreeRide(); }
+function planTick(){ if(state!=='running')return;
+  if(mode==='test'&&proto)return protocolTick();
+  if(mode==='train'&&workout)return workoutTick(); }
+function workoutTick(){ const t=elapsed(); const ph=segmentAt(t); if(!ph)return;
+  if(lastPhase===null){ lastPhase=ph.key; if(ctrlChar)setTargetPower(ph.power); return; }
+  if(ph.key!==lastPhase){ markLap();
+    if(ph.kind==='done'){ if(ctrlChar)setTargetPower(0); beep('low'); }
+    else { if(ctrlChar)setTargetPower(ph.power); beep('go'); }
+    lastPhase=ph.key; }
+  if(ph.kind!=='done') beepCountdown(ph); }
+function protocolTick(){ if(!proto||state!=='running')return; const t=elapsed(); const ph=stepFor(t);
+  if(lastPhase===null){lastPhase=ph.key;setTargetPower(ph.power);return;}
+  if(ph.key!==lastPhase){
+    const endedStepOrWarm=(lastPhase==='w'||lastPhase[0]==='s');
+    const before=laps.length; markLap(); const added=laps.length>before;
+    setTargetPower(ph.power);
+    if(ph.kind==='step')beep('go'); else if(ph.kind==='done')beep('low');
+    if(endedStepOrWarm && added) openLacPrompt(laps.length-1);
+    lastPhase=ph.key;
+  }
+  if(ph.kind==='step'||ph.kind==='warm') beepCountdown(ph);
+}
+function startProtocol(key){
+  let p;
+  if(key==='custom'){
+    const v=(id,d)=>{const x=parseFloat($(id).value);return isFinite(x)?x:d;};
+    const warmM=Math.max(0,v('cpWarmM',10)), stepM=Math.max(0.5,v('cpStepM',4));
+    p={name:'Aanpasbaar',warmupW:Math.max(0,v('cpWarmW',90)),startW:Math.max(1,v('cpStartW',120)),
+       warmS:Math.round(warmM*60),stepS:Math.round(stepM*60),stepW:Math.max(1,v('cpStepW',30))};
+  } else { p=PROTO[key]; }
+  if(!p)return;   /* laadt protocol; test start pas bij Start */
+  closeProto(); resetAll(); proto={...p}; lastPhase=null; testSession=true;
+  if(ctrlChar)setTargetPower(0); else fail('Protocol geladen \u2014 verbind nog de trainer (KICKR) voor je start.');
+  updateControls(); render(); drawLactate(); draw(); }
+function openProto(){ ensureAudio(); buildChecklist();
+  $('customProto').hidden=true; document.querySelectorAll('.proto').forEach(x=>x.classList.remove('sel'));
+  $('protoModal').classList.add('open'); }
+function closeProto(){ $('protoModal').classList.remove('open'); }
+
+/* ===== rondes + decoupling ===== */
+function decoupling(rows){
+  const valid=rows.filter(r=>r.pwr!=null&&r.hr!=null&&r.hr>0&&r.pwr>0);
+  if(valid.length<6)return null;
+  const mid=Math.floor(valid.length/2);
+  const ratio=a=>{const p=a.reduce((s,r)=>s+r.pwr,0)/a.length,h=a.reduce((s,r)=>s+r.hr,0)/a.length;return h>0?p/h:null;};
+  const r1=ratio(valid.slice(0,mid)),r2=ratio(valid.slice(mid));
+  if(!r1||!r2)return null; return (r1-r2)/r1*100;
+}
+function computeLap(t0s,t1s){
+  const rows=log.filter(r=>r.t>=t0s&&r.t<=t1s);
+  if(rows.length<2||(t1s-t0s)<2)return null;
+  const pick=k=>{const a=rows.map(r=>r[k]).filter(x=>x!=null);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null;};
+  return {n:laps.length+1,t0:t0s,t1:t1s,dur:t1s-t0s,ap:pick('pwr'),ah:pick('hr'),ac:pick('cad'),dec:decoupling(rows),lac:null,rpe:null};
+}
+function markLap(){ if(state==='idle')return; const lp=computeLap(lapStart,elapsed());
+  if(lp){laps.push(lp); lapStart=elapsed(); renderLaps(); drawLactate();} }
+function renderLaps(){
+  const c=$('lapsCard'); if(!laps.length){c.hidden=true;return;} c.hidden=false;
+  let h='<div class="lrow head"><div>#</div><div>Duur</div><div>Gem W</div><div>Gem HS</div><div>Gem rpm</div><div>Pw:Hr</div></div>';
+  laps.forEach((l,idx)=>{const dc=l.dec;
+    const col=dc==null?'var(--muted)':Math.abs(dc)<=5?'#3fae46':Math.abs(dc)<=10?'#e0a200':'#d63422';
+    h+=`<div class="lrow"><div class="mono">${l.n}</div><div class="mono">${fmtClock(l.dur)}</div>`+
+       `<div class="mono">${l.ap==null?'\u2013':Math.round(l.ap)}</div>`+
+       `<div class="mono">${l.ah==null?'\u2013':Math.round(l.ah)}</div>`+
+       `<div class="mono">${l.ac==null?'\u2013':Math.round(l.ac)}</div>`+
+       `<div class="mono" style="color:${col}">${dc==null?'\u2013':(dc>0?'+':'')+dc.toFixed(1)+'%'}</div></div>`;});
+  $('lapTable').innerHTML=h;
+}
+
+/* ===== render ===== */
+function render(){
+  const p3=roll('pwr',3);
+  setTile('pwr',cur.pwr==null?'\u2013':Math.round(cur.pwr),Date.now()-lastRx.pwr>STALE_MS);
+  $('pwrSub').textContent=`3s ${p3==null?'\u2013':Math.round(p3)} \u00b7 gem ${fmt(avg(stat.pwr),0)} \u00b7 max ${stat.pwr.max||'\u2013'}`;
+  $('p3').textContent=p3==null?'\u2013':Math.round(p3);
+  $('pMax').textContent=stat.pwr.max||'\u2013';
+  setTile('hr',cur.hr==null?'\u2013':cur.hr,Date.now()-lastRx.hr>STALE_MS);
+  $('hrSub').textContent=`gem ${fmt(avg(stat.hr),0)} \u00b7 max ${stat.hr.max||'\u2013'}`;
+  $('hMax').textContent=stat.hr.max||'\u2013';
+  if(cur.cad!=null&&Date.now()-lastRevChangeMs>3000)cur.cad=0;
+  setTile('cad',cur.cad==null?'\u2013':cur.cad,cur.pwr==null||Date.now()-lastRx.pwr>STALE_MS);
+  $('cadSub').textContent=`gem ${fmt(avg(stat.cad),0)}`;
+  const coreStale=Date.now()-lastRx.core>CORE_STALE_MS;
+  setTile('core',cur.core==null?'\u2013':cur.core.toFixed(1),coreStale);
+  if(cur.core!=null){const b=bandFor(cur.core);
+    document.querySelector('.tile.core').style.setProperty('--coreClr',b.color);
+    $('coreSub').textContent=b.name;$('coreSub').style.color=b.color;
+    $('marker').style.left=Math.max(0,Math.min(100,(cur.core-TMIN)/(TMAX-TMIN)*100))+'%';}
+  $('cMax').textContent=stat.core.max?stat.core.max.toFixed(1):'\u2013';
+  const w=parseFloat($('wkg').value),ftp=parseFloat($('ftp').value);
+  $('wpk').textContent=(cur.pwr!=null&&w>0)?(cur.pwr/w).toFixed(1):'\u2013';
+  if(cur.pwr!=null&&ftp>0){const pct=cur.pwr/ftp*100;$('zone').textContent=Math.round(pct)+'% \u00b7 '+ftpZone(pct);}
+  else $('zone').textContent='\u2013';
+  const _pt=planTargetAt(elapsed()); const tgt=_pt?_pt.power:null;
+  $('pTgt').textContent=(tgt==null)?'\u2013':Math.round(tgt);
+  $('pAct').textContent=(cur.pwr==null)?'\u2013':Math.round(cur.pwr);
+  const tp=$('testPill'), sc=$('stepClock'); let remStep=null;
+  if(mode==='test'&&proto){const t=elapsed();
+    if(state==='idle'){tp.hidden=false;tp.textContent=`${proto.name} \u00b7 opwarming ${proto.warmupW} W \u00b7 `+(ctrlChar?'druk Start':'verbind trainer');}
+    else{const ph=stepFor(t);tp.hidden=false;
+      if(ph.kind==='done') tp.textContent='Cooldown klaar \u00b7 druk Stop';
+      else{tp.textContent=`${ph.label} \u00b7 ${ph.power} W`; remStep=Math.max(0,ph.endAt-t);}}}
+  else if(mode==='train'&&workout){const t=elapsed();
+    if(state==='idle'){tp.hidden=false;tp.textContent=`${workoutName||'Training'} \u00b7 ${fmtClock(workoutTotal())} \u00b7 druk Start`;}
+    else{const ph=segmentAt(t);tp.hidden=false;
+      if(ph.kind==='done') tp.textContent='Training klaar \u00b7 druk Stop';
+      else{tp.textContent=`${ph.label} \u00b7 ${ph.power} W`; remStep=Math.max(0,ph.endAt-t);}}}
+  else if(mode==='train'){ tp.hidden=false; tp.textContent=(freeWatt>0)?`Vrij fietsen \u00b7 ${freeWatt} W (ERG)`:((state==='running')?'Vrij fietsen':'Vrij fietsen \u00b7 geen ERG'); }
+  else tp.hidden=true;
+  if(remStep!=null && state!=='idle'){ sc.hidden=false; $('stepClockVal').textContent=fmtClock(remStep); sc.classList.toggle('urgent',remStep<=10); }
+  else sc.hidden=true;
+  freshDots();
+  $('clock').textContent=fmtClock(elapsed());
+}
+function setTile(k,val,stale){const el=$(k);el.textContent=val;el.closest('.tile').classList.toggle('stale',!!stale);}
+function roll(k,sec){const a=series[k];if(!a.length)return null;const tEnd=a[a.length-1].t;
+  const w=a.filter(p=>p.t>=tEnd-sec);if(!w.length)return null;return w.reduce((s,p)=>s+p.v,0)/w.length;}
+function ftpZone(p){return p<55?'Z1':p<75?'Z2':p<90?'Z3':p<105?'Z4':p<120?'Z5':p<150?'Z6':'Z7';}
+
+/* ===== chart ===== */
+const cv=$('chart'),ctx=cv.getContext('2d');
+function sizeCanvas(){const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;
+  cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);}
+addEventListener('resize',sizeCanvas);
+
+function draw(){
+  const r=cv.getBoundingClientRect(),W=r.width,H=r.height,dpr=devicePixelRatio||1;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+  ctx.clearRect(0,0,W,H);
+  const padL=38,padR=(chartMode==='phys')?40:10,padT=10,padB=22,cw=W-padL-padR,ch=H-padT-padB;
+  const planEnd=planHorizon();
+  const tEnd=Math.max(elapsed(),planEnd,60),tStart=0,span=Math.max(60,tEnd-tStart);
+  const X=t=>padL+((t-tStart)/span)*cw;
+  const yAxis=(min,max)=>v=>padT+ch-((v-min)/(max-min))*ch;
+  ctx.font='11px ui-monospace,monospace';ctx.textBaseline='middle';
+
+  function grid(min,max,step,fmtf,side,color){ctx.strokeStyle='rgba(28,26,18,.08)';ctx.lineWidth=1;
+    const y=yAxis(min,max);ctx.fillStyle=color||'#8a8268';
+    ctx.textAlign=side==='right'?'left':'right';
+    for(let g=min;g<=max+1e-9;g+=step){const yy=y(g);
+      if(side!=='right'){ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();}
+      ctx.fillText(fmtf(g),side==='right'?W-padR+6:padL-6,yy);}}
+
+  function line(arr,y,color,fill){const n=arr.length;if(n<2)return;
+    const stride=Math.max(1,Math.ceil(n/3000));
+    const pts=[];for(let i=0;i<n;i+=stride)pts.push(arr[i]); if(pts[pts.length-1]!==arr[n-1])pts.push(arr[n-1]);
+    if(fill){const grd=ctx.createLinearGradient(0,padT,0,padT+ch);
+      grd.addColorStop(0,hexA(color,.22));grd.addColorStop(1,hexA(color,0));
+      ctx.fillStyle=grd;ctx.beginPath();ctx.moveTo(X(pts[0].t),padT+ch);
+      pts.forEach(p=>ctx.lineTo(X(p.t),y(p.v)));ctx.lineTo(X(pts[pts.length-1].t),padT+ch);ctx.closePath();ctx.fill();}
+    ctx.strokeStyle=color;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();
+    pts.forEach((p,i)=>{const xx=X(p.t),yy=y(p.v);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});ctx.stroke();
+    const last=arr[n-1],px=X(last.t),py=y(last.v);
+    if(running()){const ph=(performance.now()%1300)/1300;
+      ctx.globalAlpha=(1-ph)*0.45;ctx.beginPath();ctx.arc(px,py,4+ph*9,0,7);ctx.fillStyle=color;ctx.fill();ctx.globalAlpha=1;}
+    ctx.beginPath();ctx.arc(px,py,4,0,7);ctx.fillStyle=color;ctx.fill();}
+
+  // ronde-markers
+  function lapMarks(){ctx.strokeStyle='rgba(28,26,18,.18)';ctx.setLineDash([3,3]);ctx.lineWidth=1;
+    laps.forEach(l=>{if(l.t1>0&&l.t1<tEnd){const xx=X(l.t1);ctx.beginPath();ctx.moveTo(xx,padT);ctx.lineTo(xx,padT+ch);ctx.stroke();}});
+    ctx.setLineDash([]);}
+
+  if(chartMode==='phys'){
+    const hasPlan=(mode==='test'&&proto)||(mode==='train'&&workout);
+    // piek-doelvermogen over het getoonde plan -> as-schaal
+    let peakTgt=0;
+    if(mode==='train'&&workout){ for(const s of workout){ const w=segWatt(s); if(w>peakTgt)peakTgt=w; } }
+    else if(mode==='test'&&proto){ let tt=0; while(tt<planEnd){ const ph=stepFor(tt); if(ph.power>peakTgt)peakTgt=ph.power; if(!isFinite(ph.endAt)||ph.endAt<=tt)break; tt=ph.endAt; } }
+    const pmax=Math.max(200,Math.ceil(((Math.max(stat.pwr.max||0,peakTgt))*1.05)/50)*50);
+    const yp=yAxis(0,pmax),yh=yAxis(50,210);
+    // achtergrond: geplande training OF inspanningstest als gekleurde blokken
+    if(hasPlan){ let tt=0;
+      while(tt<planEnd){ const ph=planTargetAt(tt); if(!ph||!isFinite(ph.endAt)||ph.endAt<=tt)break;
+        const xa=X(tt),xb=X(Math.min(ph.endAt,tEnd)),yv=yp(ph.power),col=SEGCOL[ph.kind]||'#c8930f';
+        ctx.fillStyle=hexA(col,.14); ctx.fillRect(xa,yv,Math.max(0,xb-xa),(padT+ch)-yv); tt=ph.endAt; } }
+    grid(0,pmax,pmax/4,v=>v.toFixed(0),'left','rgba(200,147,15,.95)');
+    grid(50,210,40,v=>v.toFixed(0),'right','rgba(226,59,48,.9)');
+    lapMarks();
+    if(mode==='train'&&workout) drawSetBrackets(X,padT);
+    // doellijn (ghost) over het hele plan vooruit
+    if(hasPlan){ const ghostEnd=planEnd;
+      ctx.strokeStyle=hexA(getCss('--pwr'),.55);ctx.setLineDash([5,4]);ctx.lineWidth=1.5;
+      ctx.beginPath();let tt=0,first=true;
+      while(tt<=ghostEnd){const ph=planTargetAt(tt);if(!ph)break;const yv=yp(ph.power),xa=X(tt),xb=X(Math.min(ph.endAt,ghostEnd));
+        if(first){ctx.moveTo(xa,yv);first=false;}else{ctx.lineTo(xa,yv);}ctx.lineTo(xb,yv);
+        if(!isFinite(ph.endAt)||ph.endAt<=tt)break;tt=ph.endAt;}
+      ctx.stroke();ctx.setLineDash([]);}
+    line(series.pwr,yp,getCss('--pwr'),true);
+    line(series.hr,yh,getCss('--hr'),false);
+    legend(W,padR,[['W',getCss('--pwr')],['bpm',getCss('--hr')]]);
+  }else if(chartMode==='core'){
+    const y=yAxis(TMIN,TMAX);let prev=TMIN;
+    for(const b of BANDS){const top=Math.min(b.max,TMAX);ctx.fillStyle=hexA(b.color,.10);
+      ctx.fillRect(padL,y(top),cw,y(prev)-y(top));prev=top;if(b.max>=TMAX)break;}
+    grid(TMIN,TMAX,1,v=>v.toFixed(0),'left'); lapMarks();
+    line(series.core,y,cur.core!=null?bandFor(cur.core).color:'#b7902a',false);
+  }else{
+    const y=yAxis(0,130);grid(0,130,26,v=>v.toFixed(0),'left','rgba(192,113,42,.95)'); lapMarks();
+    line(series.cad,y,getCss('--cad'),true);
+  }
+
+  // x-as: adaptieve tijd-ijking
+  ctx.font='10px ui-monospace,monospace';ctx.textBaseline='alphabetic';ctx.lineWidth=1;
+  const tStep=niceTimeStep(tEnd);
+  for(let tt=0;tt<=tEnd+0.5;tt+=tStep){const xx=X(tt);
+    ctx.strokeStyle='rgba(28,26,18,.045)';ctx.beginPath();ctx.moveTo(xx,padT);ctx.lineTo(xx,padT+ch);ctx.stroke();
+    ctx.fillStyle='#8a8268';ctx.textAlign=tt===0?'left':(xx>W-padR-22?'right':'center');
+    ctx.fillText(fmtClock(tt),Math.max(padL,Math.min(W-padR,xx)),H-6);}
+}
+function legend(W,padR,items){ctx.font='11px ui-sans-serif,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
+  let x=W-padR-2;const y=14;for(let i=items.length-1;i>=0;i--){const[lab,col]=items[i];
+    const tw=ctx.measureText(lab).width;x-=tw;ctx.fillStyle=col;ctx.fillText(lab,x,y);
+    x-=8;ctx.fillStyle=col;ctx.fillRect(x-9,y-4,8,8);x-=16;}}
+function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+/* set-haakjes bovenaan de grafiek: markeert herhaalde interval-sets als groep */
+function drawSetBrackets(X,padT){ if(!workout)return;
+  let acc=0,cur=null; const groups=[];
+  for(const s of workout){ const t0=acc,t1=acc+s.dur; acc=t1;
+    if(s.set){ if(cur&&cur.set===s.set)cur.t1=t1; else { cur={set:s.set,rep:s.setRep||0,t0,t1}; groups.push(cur); } }
+    else cur=null; }
+  if(!groups.length)return;
+  ctx.save(); ctx.font='bold 10px ui-sans-serif,sans-serif'; ctx.textBaseline='alphabetic'; ctx.textAlign='center';
+  const gold=getCss('--gold');
+  for(const g of groups){ const xa=X(g.t0),xb=X(g.t1),y=padT+1;
+    ctx.strokeStyle=hexA(gold,.6); ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(xa,y+5); ctx.lineTo(xa,y); ctx.lineTo(xb,y); ctx.lineTo(xb,y+5); ctx.stroke();
+    if(g.rep){ const lab=g.rep+'×'; const mx=(xa+xb)/2, tw=ctx.measureText(lab).width;
+      ctx.fillStyle='rgba(251,250,246,.92)'; ctx.fillRect(mx-tw/2-4,y-1,tw+8,12);
+      ctx.fillStyle=gold; ctx.fillText(lab,mx,y+8); } }
+  ctx.restore(); }
+
+/* ===== lactaatcurve (enkel tijdens inspanningstest) ===== */
+const lcv=$('lacChart'), lctx=lcv?lcv.getContext('2d'):null;
+function sizeLac(){ if(!lcv||!lctx)return; const r=lcv.getBoundingClientRect(),d=devicePixelRatio||1;
+  lcv.width=Math.max(1,Math.round(r.width*d)); lcv.height=Math.max(1,Math.round(r.height*d)); lctx.setTransform(d,0,0,d,0,0); }
+function drawLactate(){
+  const card=$('lacCard'); if(card)card.hidden=true;   /* lactaatcurve voorlopig verborgen — data blijft bewaard voor het verslag */
+  return;
+  if(!lctx||!testSession)return; sizeLac();
+  const r=lcv.getBoundingClientRect(),W=r.width,H=r.height; lctx.clearRect(0,0,W,H);
+  const pts=laps.filter(l=>l.lac!=null&&l.ap!=null).map(l=>({p:l.ap,lac:l.lac})).sort((a,b)=>a.p-b.p);
+  const padL=40,padR=14,padT=12,padB=26,cw=W-padL-padR,ch=H-padT-padB;
+  if(pts.length<1){ lctx.fillStyle='#8a8268';lctx.font='13px ui-sans-serif,sans-serif';lctx.textAlign='center';lctx.textBaseline='middle';
+    lctx.fillText('Vul lactaatwaarden in om de curve te zien',W/2,H/2); return; }
+  let xa=Math.min.apply(null,pts.map(d=>d.p))-10, xb=Math.max.apply(null,pts.map(d=>d.p))+10; if(xb-xa<60){xa-=30;xb+=30;}
+  const lmax=Math.max(6,Math.ceil(Math.max.apply(null,pts.map(d=>d.lac))+0.5));
+  const X=p=>padL+((p-xa)/(xb-xa))*cw, Y=v=>padT+ch-(v/lmax)*ch;
+  lctx.font='10px ui-monospace,monospace';lctx.textBaseline='middle';
+  for(let g=0;g<=lmax+1e-9;g+=2){const yy=Y(g);lctx.strokeStyle='rgba(28,26,18,.08)';lctx.beginPath();lctx.moveTo(padL,yy);lctx.lineTo(W-padR,yy);lctx.stroke();
+    lctx.fillStyle='#8a8268';lctx.textAlign='right';lctx.fillText(g.toFixed(0),padL-6,yy);}
+  [[2,'LT1'],[4,'LT2']].forEach(pr=>{const v=pr[0];if(v<=lmax){const yy=Y(v);lctx.strokeStyle='rgba(47,143,134,.5)';lctx.setLineDash([4,3]);
+    lctx.beginPath();lctx.moveTo(padL,yy);lctx.lineTo(W-padR,yy);lctx.stroke();lctx.setLineDash([]);
+    lctx.fillStyle='#2f8f86';lctx.textAlign='left';lctx.font='9px ui-sans-serif,sans-serif';lctx.fillText(pr[1]+' \u2248'+v,padL+5,yy-7);lctx.font='10px ui-monospace,monospace';}});
+  lctx.textAlign='center';lctx.textBaseline='alphabetic';lctx.fillStyle='#8a8268';
+  for(let i=0;i<=4;i++){const pv=xa+(xb-xa)*i/4,xx=X(pv);lctx.fillText(Math.round(pv),Math.max(padL,Math.min(W-padR,xx)),H-8);}
+  const col='#2f8f86';
+  lctx.strokeStyle=col;lctx.lineWidth=2.2;lctx.lineJoin='round';lctx.beginPath();
+  pts.forEach((d,i)=>{const xx=X(d.p),yy=Y(d.lac);i?lctx.lineTo(xx,yy):lctx.moveTo(xx,yy);});lctx.stroke();
+  lctx.fillStyle=col;pts.forEach(d=>{lctx.beginPath();lctx.arc(X(d.p),Y(d.lac),3.6,0,7);lctx.fill();});
+  lctx.fillStyle='#8a8268';lctx.font='10px ui-sans-serif,sans-serif';lctx.textAlign='left';lctx.textBaseline='alphabetic';
+  lctx.fillText('mmol/l',6,padT+4);
+}
+addEventListener('resize',drawLactate);
+
+/* ===== platform / Web Bluetooth-detectie (iPad-vriendelijk) ===== */
+const HAS_BLE=!!navigator.bluetooth;
+const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function bleHelpHTML(){ return IS_IOS
+  ? 'Web Bluetooth ontbreekt in Safari op iPad, dus de sensoren en KICKR werken hier niet. Open dit bestand in de gratis app <b>Bluefy &ndash; Web BLE Browser</b> om wel te kunnen verbinden. Grafieken, trainingsbouwer en export werken ook in Safari.'
+  : 'Geen Web Bluetooth in deze browser &mdash; gebruik Chrome of Edge op een computer om sensoren te verbinden.'; }
+function showBleNotice(){ if(HAS_BLE)return; const n=$('btNotice'); if(!n||!n.hidden)return; $('btNoticeTxt').innerHTML=bleHelpHTML(); n.hidden=false; }
+function bleFailMsg(){ return IS_IOS?'Geen Web Bluetooth in Safari — open via de app Bluefy (zie melding bovenaan).':'Geen Web Bluetooth — gebruik Chrome of Edge.'; }
+if($('btNoticeX'))$('btNoticeX').addEventListener('click',()=>{$('btNotice').hidden=true;});
+
+/* ===== connect ===== */
+async function connect(k){const cfg=SENSORS[k];
+  if(!navigator.bluetooth){fail(bleFailMsg());showBleNotice();return;}
+  try{manualOff[k]=false; setDot(k,'warn');
+    const d=await navigator.bluetooth.requestDevice({filters:[{services:cfg.filter}],
+      optionalServices:[...cfg.filter,cfg.svc]});
+    d.addEventListener('gattserverdisconnected',()=>onDrop(k));
+    const server=await d.gatt.connect();
+    const svc=await server.getPrimaryService(cfg.svc);
+    const ch=await svc.getCharacteristic(cfg.chr);
+    await ch.startNotifications();
+    ch.addEventListener('characteristicvaluechanged',cfg.onValue);
+    dev[k]=d; setDot(k,'on'); setName(k,d.name||cfg.label,'verbonden');
+    btn(k).textContent='Loskoppelen';
+  }catch(e){
+    if(e&&e.name==='NotFoundError'){setDot(k,'');setName(k,cfg.label,'niet verbonden');}
+    else fail('Verbinden mislukt: '+(e?.message||e));}
+}
+function disconnect(k){ manualOff[k]=true; const d=dev[k];
+  try{ if(d&&d.gatt.connected)d.gatt.disconnect(); }catch(e){}
+  dev[k]=null; setDot(k,''); setName(k,SENSORS[k].label,'niet verbonden'); btn(k).textContent='Verbinden';
+  if(k==='pwr')prevCrank=null; }
+function onDrop(k){ if(manualOff[k])return;
+  if(k==='pwr')prevCrank=null;
+  if(dev[k]) reconnectSensor(k); }
+async function reconnectSensor(k){ if(recon[k])return; recon[k]=true; const cfg=SENSORS[k]; const d=dev[k];
+  if(!d){recon[k]=false;return;}
+  setDot(k,'recon'); setName(k,d.name||cfg.label,'herverbinden\u2026'); btn(k).textContent='Annuleer';
+  try{
+    for(let att=0;att<8;att++){ if(manualOff[k]||!dev[k])return;
+      try{ const server=await d.gatt.connect();
+        const svc=await server.getPrimaryService(cfg.svc); const ch=await svc.getCharacteristic(cfg.chr);
+        await ch.startNotifications(); ch.addEventListener('characteristicvaluechanged',cfg.onValue);
+        setDot(k,'on'); setName(k,d.name||cfg.label,'verbonden'); btn(k).textContent='Loskoppelen'; return;
+      }catch(e){ await new Promise(r=>setTimeout(r,2000)); } }
+    setDot(k,'warn'); setName(k,cfg.label,'verbinding verbroken'); btn(k).textContent='Verbinden'; dev[k]=null;
+  } finally { recon[k]=false; }
+}
+function trnBtn(){return document.querySelector('.sensor button[data-k="trn"]');}
+function onIndoorBike(e){const dv=e.target.value;const fl=dv.getUint16(0,true);let o=2;let pw=null,cad=null;
+  if(!(fl&0x0001))o+=2;
+  if(fl&0x0002)o+=2;
+  if(fl&0x0004){cad=dv.getUint16(o,true)/2;o+=2;}
+  if(fl&0x0008)o+=2;
+  if(fl&0x0010)o+=3;
+  if(fl&0x0020)o+=2;
+  if(fl&0x0040){pw=dv.getInt16(o,true);o+=2;}
+  const now=Date.now(); lastRx.trn=now;
+  if(pw!=null){pw=Math.max(0,pw);cur.pwr=pw;lastRx.pwr=now;
+    if(running()){stat.pwr.sum+=pw;stat.pwr.n++;stat.pwr.max=Math.max(stat.pwr.max,pw);push('pwr',pw);}}
+  if(cad!=null){cad=Math.round(cad);cur.cad=cad;lastRevChangeMs=now;
+    if(running()){stat.cad.sum+=cad;stat.cad.n++;push('cad',cad);}}}
+async function connectTrainer(){
+  if(!navigator.bluetooth){fail(bleFailMsg());showBleNotice();return;}
+  try{ trnManualOff=false; ergWarned=false; setDot('trn','warn');
+    const d=await navigator.bluetooth.requestDevice({filters:[{services:[FTMS]}],optionalServices:[FTMS,CPS]});
+    d.addEventListener('gattserverdisconnected',onTrnDrop);
+    const server=await d.gatt.connect();
+    const svc=await server.getPrimaryService(FTMS);
+    try{const ibd=await svc.getCharacteristic(FT_IBD);await ibd.startNotifications();
+      ibd.addEventListener('characteristicvaluechanged',onIndoorBike);}catch(e){}
+    ctrlChar=await svc.getCharacteristic(FT_CP);
+    try{await ctrlChar.startNotifications();ctrlChar.addEventListener('characteristicvaluechanged',()=>{});}catch(e){}
+    await cpWrite([0x00]); await cpWrite([0x07]);
+    trnDev=d; trainerPower=true; setDot('trn','on'); setName('trn',d.name||'Trainer','verbonden \u00b7 ERG klaar');
+    trnBtn().textContent='Loskoppelen';
+    if(state==='running')applyCurrentTarget(); else if(following())setTargetPower(0);
+  }catch(e){ if(e&&e.name==='NotFoundError'){setDot('trn','');setName('trn','Trainer (KICKR)','niet verbonden');}
+    else { ctrlChar=null; fail('Trainer verbinden mislukt: '+(e&&e.message||e)); } }
+}
+function onTrnDrop(){ if(trnManualOff){trnDev=null;ctrlChar=null;trainerPower=false;return;}
+  ctrlChar=null; trainerPower=false;
+  if(trnDev) reconnectTrainer(); }
+let reconTrn=false;
+async function reconnectTrainer(){ if(reconTrn)return; reconTrn=true; const d=trnDev; if(!d){reconTrn=false;return;}
+  setDot('trn','recon'); setName('trn',d.name||'Trainer','herverbinden\u2026'); trnBtn().textContent='Annuleer';
+  try{
+    for(let att=0;att<10;att++){ if(trnManualOff||!trnDev)return;
+      try{ const server=await d.gatt.connect(); const svc=await server.getPrimaryService(FTMS);
+        try{const ibd=await svc.getCharacteristic(FT_IBD);await ibd.startNotifications();ibd.addEventListener('characteristicvaluechanged',onIndoorBike);}catch(e){}
+        ctrlChar=await svc.getCharacteristic(FT_CP); try{await ctrlChar.startNotifications();}catch(e){}
+        ergWarned=false; await cpWrite([0x00]); await cpWrite([0x07]);
+        trainerPower=true; setDot('trn','on'); setName('trn',d.name||'Trainer','verbonden \u00b7 ERG klaar'); trnBtn().textContent='Loskoppelen';
+        if(proto && state==='running') applyCurrentTarget();
+        return;
+      }catch(e){ await new Promise(r=>setTimeout(r,2000)); } }
+    setDot('trn','warn'); setName('trn','Trainer (KICKR)','verbinding verbroken'); trnBtn().textContent='Verbinden'; trnDev=null; ctrlChar=null; trainerPower=false;
+  } finally { reconTrn=false; }
+}
+function disconnectTrainer(){ trnManualOff=true; const d=trnDev;
+  try{ if(d&&d.gatt.connected){ try{setTargetPower(0);}catch(e){} d.gatt.disconnect(); } }catch(e){}
+  trnDev=null; ctrlChar=null; trainerPower=false; setDot('trn',''); setName('trn','Trainer (KICKR)','niet verbonden'); trnBtn().textContent='Verbinden'; }
+function btn(k){return document.querySelector(`.sensor button[data-k="${k}"]`);}
+function setDot(k,cls){const c='dot'+(cls?' '+cls:'');const a=$('dot-'+k);if(a)a.className=c;const b=$('cdot-'+k);if(b)b.className=c;}
+function setName(k,nm,sub){$('nm-'+k).innerHTML=nm+'<small>'+sub+'</small>';}
+function fail(m){const e=$('errline'); if(e) e.textContent=m;}
+
+document.querySelectorAll('.sensor button').forEach(b=>{
+  b.addEventListener('click',()=>{const k=b.dataset.k;
+    if(k==='trn'){ trnDev?disconnectTrainer():connectTrainer(); return; }
+    dev[k]?disconnect(k):connect(k);});});
+
+/* ===== verbindingen-modal ===== */
+$('btnConn').addEventListener('click',()=>$('connModal').classList.add('open'));
+$('connX').addEventListener('click',()=>$('connModal').classList.remove('open'));
+$('connModal').addEventListener('click',e=>{ if(e.target===$('connModal'))$('connModal').classList.remove('open'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')$('connModal').classList.remove('open'); });
+
+/* ===== snelstart-popup ===== */
+function openHelp(){ $('helpModal').classList.add('open'); }
+function closeHelp(){ $('helpModal').classList.remove('open'); }
+$('btnHelp').addEventListener('click',openHelp);
+$('helpX').addEventListener('click',closeHelp);
+$('helpOk').addEventListener('click',closeHelp);
+$('helpModal').addEventListener('click',e=>{ if(e.target===$('helpModal'))closeHelp(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeHelp(); });
+try{ if(!localStorage.getItem('vc_train_help_seen')){ openHelp(); localStorage.setItem('vc_train_help_seen','1'); } }catch(e){}
+
+/* ===== knoppen ===== */
+$('btnStart').addEventListener('click',start);
+$('btnPause').addEventListener('click',pause);
+$('btnLap').addEventListener('click',markLap);
+$('btnStop').addEventListener('click',stop);
+$('btnTest').addEventListener('click',openProto);
+$('pmClose').addEventListener('click',closeProto);
+$('protoModal').addEventListener('click',e=>{if(e.target===$('protoModal'))closeProto();});
+document.querySelectorAll('.proto').forEach(b=>b.addEventListener('click',()=>{
+  if(b.dataset.p==='custom'){ const cp=$('customProto'); cp.hidden=!cp.hidden;
+    b.classList.toggle('sel',!cp.hidden); if(!cp.hidden)setTimeout(()=>{try{$('cpWarmW').focus();}catch(e){}},40); }
+  else startProtocol(b.dataset.p); }));
+$('cpLoad').addEventListener('click',()=>startProtocol('custom'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProto();});
+$('lapTable').addEventListener('input',e=>{const inp=e.target.closest('input[data-lap]');if(!inp)return;
+  const i=+inp.dataset.lap, fld=inp.dataset.f||'lac'; if(laps[i]){const v=parseFloat(inp.value); laps[i][fld]=isFinite(v)?v:null; saveState(); drawLactate();}});
+
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active'); chartMode=c.dataset.mode; draw(); saveState();}));
+
+/* sync atleetnaam tussen balk en pop-up */
+function updateAthName(){ const n=($('athlete').value||'').trim(); $('rAthName').textContent=n?('· '+n):''; }
+$('athlete').addEventListener('input',()=>{$('athlete2').value=$('athlete').value;updateAthName();updateFname();saveState();});
+$('athlete2').addEventListener('input',()=>{$('athlete').value=$('athlete2').value;updateAthName();updateFname();saveState();});
+$('wkg').addEventListener('input',saveState);
+$('ftp').addEventListener('input',saveState);
+/* atleetgegevens-popup (alleen relevant bij een inspanningstest) */
+function closeAth(){ $('athleteModal').classList.remove('open'); }
+$('btnAthlete').addEventListener('click',()=>$('athleteModal').classList.add('open'));
+$('athX').addEventListener('click',closeAth);
+$('athSave').addEventListener('click',()=>{ updateAthName(); updateFname(); saveState(); closeAth(); });
+$('athleteModal').addEventListener('click',e=>{ if(e.target===$('athleteModal'))closeAth(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeAth(); });
+['athH','athDob','athInfo'].forEach(id=>{ const el=$(id); if(el)el.addEventListener('input',saveState); });
+
+/* ===== bestandsnaam + pop-up ===== */
+function sanitize(s){return (s||'').replace(/\s+/g,'').replace(/[^A-Za-z0-9\u00C0-\u017F]/g,'');}
+function buildFname(ext){const n=sanitize($('athlete').value)||'test';
+  const d=new Date();return `${n}${d.getDate()}${MONTHS[d.getMonth()]}${d.getFullYear()}.${ext}`;}
+function updateFname(){$('fnamePreview').textContent=buildFname('fit');}
+let resetArmed=false;
+function openModal(){ $('mDur').textContent=fmtClock(elapsed());
+  $('mNote').style.color=''; $('mNote').textContent= log.length?'':'Nog geen data opgenomen.';
+  resetArmed=false; $('mReset').textContent='Reset test'; $('mReset').classList.remove('b-stop');
+  updateFname(); $('modal').classList.add('open'); setTimeout(()=>$('athlete2').focus(),60); }
+function closeModal(){ $('modal').classList.remove('open'); }
+
+$('mClose').addEventListener('click',closeModal);
+$('mReset').addEventListener('click',()=>{
+  if(!resetArmed){resetArmed=true;$('mReset').textContent='Bevestig reset';$('mReset').classList.add('b-stop');return;}
+  resetAll();closeModal();});
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function download(bytes,name,mime){const blob=new Blob([bytes],{type:mime});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+
+$('mExport').addEventListener('click',()=>{
+  if(!log.length){$('mNote').style.color='';$('mNote').textContent='Geen data om te exporteren.';return;}
+  try{const bytes=buildFIT(); download(bytes,buildFname('fit'),'application/octet-stream');
+    $('mNote').style.color='#3fae46';$('mNote').textContent='Opgeslagen: '+buildFname('fit');}
+  catch(err){$('mNote').style.color='';$('mNote').textContent='FIT-fout: '+(err?.message||err)+' \u2014 probeer .csv';}});
+
+$('mCsv').addEventListener('click',()=>{
+  if(!log.length){$('mNote').style.color='';$('mNote').textContent='Geen data om te exporteren.';return;}
+  let csv='';
+  const csvq=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
+  csv+='Atleetgegevens\n';
+  csv+='naam,lengte_cm,gewicht_kg,geboortedatum,overige_info\n';
+  csv+=[csvq($('athlete').value),$('athH').value||'',$('wkg').value||'',$('athDob').value||'',csvq($('athInfo').value)].join(',')+'\n\n';
+  if(lt1||lt2){
+    csv+='Analyse (drempels)\n';
+    csv+='drempel,vermogen_W,lactaat_mmol,hartslag_bpm\n';
+    if(lt1)csv+=`LT1,${Math.round(lt1.p)},${lt1.lac==null?'':lt1.lac.toFixed(1)},${lt1.hr==null?'':Math.round(lt1.hr)}\n`;
+    if(lt2)csv+=`LT2,${Math.round(lt2.p)},${lt2.lac==null?'':lt2.lac.toFixed(1)},${lt2.hr==null?'':Math.round(lt2.hr)}\n`;
+    csv+='\n';
+  }
+  if(laps.length){
+    csv+='Stap-/rondesamenvatting\n';
+    csv+='lap,start_s,duur_s,gem_vermogen_W,gem_hartslag_bpm,gem_cadans_rpm,decoupling_pct,lactaat_mmol,rpe\n';
+    csv+=laps.map(l=>[l.n,Math.round(l.t0),Math.round(l.dur),
+      l.ap==null?'':Math.round(l.ap),l.ah==null?'':Math.round(l.ah),l.ac==null?'':Math.round(l.ac),
+      l.dec==null?'':l.dec.toFixed(1),l.lac==null?'':l.lac,l.rpe==null?'':l.rpe].join(',')).join('\n');
+    csv+='\n\n';
+  }
+  csv+='Tijdreeks (per seconde)\n';
+  csv+='seconds,power_W,heart_rate_bpm,cadence_rpm,core_temp_C\n';
+  csv+=log.map(r=>[r.t,r.pwr??'',r.hr??'',r.cad??'',r.core??''].join(',')).join('\n');
+  download(csv,buildFname('csv'),'text/csv');
+  $('mNote').style.color='#3fae46';$('mNote').textContent='Opgeslagen: '+buildFname('csv');});
+
+/* ===== FIT encoder ===== */
+function fitCRC(bytes){const T=[0x0000,0xCC01,0xD801,0x1400,0xF001,0x3C00,0x2800,0xE401,0xA001,0x6C00,0x7800,0xB401,0x5000,0x9C01,0x8801,0x4400];
+  let crc=0;for(let i=0;i<bytes.length;i++){const b=bytes[i];let t=T[crc&0xF];crc=(crc>>4)&0x0FFF;crc=crc^t^T[b&0xF];
+    t=T[crc&0xF];crc=(crc>>4)&0x0FFF;crc=crc^t^T[(b>>4)&0xF];}return crc&0xFFFF;}
+function u8(a,v){a.push(v&0xFF);}
+function u16(a,v){a.push(v&0xFF,(v>>>8)&0xFF);}
+function u32(a,v){a.push(v&0xFF,(v>>>8)&0xFF,(v>>>16)&0xFF,(v>>>24)&0xFF);}
+function s8(a,v){v=Math.max(-128,Math.min(127,v));a.push(v<0?v+256:v);}
+function defMsg(a,local,global,fields){a.push(0x40|local,0,0);u16(a,global);a.push(fields.length);
+  for(const f of fields){a.push(f[0],f[1],f[2]);}}
+const FE=631065600;
+function buildFIT(){
+  const fitT=u=>((u-FE)>>>0);
+  const startUnix=Math.floor((startedAtMs||(Date.now()-elapsed()*1000))/1000);
+  const lastT=log.length?log[log.length-1].t:0;
+  const oAP=stat.pwr.n?stat.pwr.sum/stat.pwr.n:null, oAH=stat.hr.n?stat.hr.sum/stat.hr.n:null, oAC=stat.cad.n?stat.cad.sum/stat.cad.n:null;
+  const lapArr=laps.length?laps:[{n:1,t0:0,t1:lastT,ap:oAP,ah:oAH,ac:oAC}];
+  const D=[];
+  // file_id (#0)
+  defMsg(D,0,0,[[0,1,0x00],[1,2,0x84],[2,2,0x84],[4,4,0x86]]);
+  D.push(0); u8(D,4); u16(D,255); u16(D,0); u32(D,fitT(startUnix));
+  // record (#20)
+  defMsg(D,1,20,[[253,4,0x86],[3,1,0x02],[4,1,0x02],[7,2,0x84],[13,1,0x01]]);
+  for(const r of log){ D.push(1);
+    u32(D,fitT(startUnix+r.t));
+    u8(D,r.hr==null?0xFF:Math.max(0,Math.min(254,r.hr)));
+    u8(D,r.cad==null?0xFF:Math.max(0,Math.min(254,r.cad)));
+    u16(D,r.pwr==null?0xFFFF:Math.max(0,Math.min(65534,r.pwr)));
+    s8(D,r.core==null?0x7F:Math.round(r.core)); }
+  // lap (#19)
+  defMsg(D,2,19,[[254,2,0x84],[253,4,0x86],[2,4,0x86],[7,4,0x86],[8,4,0x86],[19,2,0x84],[15,1,0x02],[17,1,0x02]]);
+  let li=0;
+  for(const l of lapArr){ D.push(2);
+    u16(D,li++); u32(D,fitT(startUnix+l.t1)); u32(D,fitT(startUnix+l.t0));
+    u32(D,Math.round((l.t1-l.t0)*1000)); u32(D,Math.round((l.t1-l.t0)*1000));
+    u16(D,l.ap==null?0xFFFF:Math.round(l.ap));
+    u8(D,l.ah==null?0xFF:Math.round(l.ah));
+    u8(D,l.ac==null?0xFF:Math.round(l.ac)); }
+  // session (#18)
+  defMsg(D,3,18,[[254,2,0x84],[253,4,0x86],[2,4,0x86],[7,4,0x86],[8,4,0x86],[5,1,0x00],[20,2,0x84],[21,2,0x84],[16,1,0x02],[17,1,0x02],[18,1,0x02],[26,2,0x84],[9,4,0x86]]);
+  D.push(3);
+  u16(D,0); u32(D,fitT(startUnix+lastT)); u32(D,fitT(startUnix));
+  u32(D,Math.round(lastT*1000)); u32(D,Math.round(lastT*1000));
+  u8(D,2);
+  u16(D,oAP==null?0xFFFF:Math.round(oAP)); u16(D,stat.pwr.max||0xFFFF);
+  u8(D,oAH==null?0xFF:Math.round(oAH)); u8(D,stat.hr.max||0xFF);
+  u8(D,oAC==null?0xFF:Math.round(oAC));
+  u16(D,lapArr.length); u32(D,0);
+  // activity (#34)
+  defMsg(D,4,34,[[253,4,0x86],[0,4,0x86],[1,2,0x84],[2,1,0x00],[3,1,0x00],[4,1,0x00],[5,4,0x86]]);
+  D.push(4);
+  u32(D,fitT(startUnix+lastT)); u32(D,Math.round(lastT*1000)); u16(D,1);
+  u8(D,0); u8(D,26); u8(D,1);
+  const tz=-new Date().getTimezoneOffset()*60; u32(D,((startUnix+lastT-FE+tz)>>>0));
+  // header + crc
+  const size=D.length;
+  const H=[14,0x20,2140&0xFF,(2140>>8)&0xFF,size&0xFF,(size>>>8)&0xFF,(size>>>16)&0xFF,(size>>>24)&0xFF,0x2E,0x46,0x49,0x54];
+  const hc=fitCRC(H); H.push(hc&0xFF,(hc>>8)&0xFF);
+  const all=H.concat(D);
+  const fc=fitCRC(all); all.push(fc&0xFF,(fc>>8)&0xFF);
+  return new Uint8Array(all);
+}
+
+/* ===== persistentie ===== */
+function saveState(){ try{
+  const acc=elapsed();
+  localStorage.setItem(LS_KEY,JSON.stringify({
+    v:1, state:(state==='running'?'paused':state), accumulated:acc, startedAtMs, chartMode,
+    laps, lapStart, stat, log, testSession, stepsEndAt, lt1, lt2,
+    mode, workout, workoutName, freeWatt,
+    athlete:$('athlete').value, wkg:$('wkg').value, ftp:$('ftp').value,
+    athH:$('athH').value, athDob:$('athDob').value, athInfo:$('athInfo').value }));
+}catch(e){} }
+function loadState(){ try{
+  const j=JSON.parse(localStorage.getItem(LS_KEY)); if(!j||j.v!==1)return false;
+  mode='train'; workout=j.workout||null; workoutName=j.workoutName||'';
+  freeWatt=(j.freeWatt!=null&&j.freeWatt>0)?j.freeWatt:null; if($('freeW'))$('freeW').value=freeWatt||'';
+  if(!(j.log&&j.log.length)&&(j.state==='idle'||!j.state))return false;
+  /* atleetvelden enkel terugzetten bij een actieve sessie (crash-herstel), niet op een verse start */
+  $('athlete').value=j.athlete||''; $('athlete2').value=j.athlete||'';
+  $('wkg').value=j.wkg||''; $('ftp').value=j.ftp||'';
+  $('athH').value=j.athH||''; $('athDob').value=j.athDob||''; $('athInfo').value=j.athInfo||''; updateAthName();
+  state=j.state||'idle'; accumulated=j.accumulated||0; startedAtMs=j.startedAtMs||null;
+  chartMode=j.chartMode||'phys'; laps=j.laps||[]; lapStart=j.lapStart||0; testSession=!!j.testSession;
+  stepsEndAt=(j.stepsEndAt==null?null:j.stepsEndAt); lt1=j.lt1||null; lt2=j.lt2||null;
+  if(j.stat)Object.assign(stat,j.stat);
+  if(j.log){for(const r of j.log){log.push(r);
+    if(r.pwr!=null)series.pwr.push({t:r.t,v:r.pwr});
+    if(r.hr!=null)series.hr.push({t:r.t,v:r.hr});
+    if(r.cad!=null)series.cad.push({t:r.t,v:r.cad});
+    if(r.core!=null)series.core.push({t:r.t,v:r.core});}}
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.mode===chartMode));
+  return true;
+}catch(e){return false;} }
+
+/* ===== audio (piepjes) ===== */
+function ensureAudio(){ try{ if(!audioCtx){ const AC=window.AudioContext||window.webkitAudioContext; if(AC)audioCtx=new AC(); }
+  if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
+function beep(kind){ ensureAudio(); if(!audioCtx)return;
+  const M={tick:[880,0.09,0.2], warn:[660,0.17,0.24], go:[1175,0.26,0.3], low:[440,0.22,0.22]};
+  const a=M[kind]||M.tick, f=a[0],dur=a[1],vol=a[2], t0=audioCtx.currentTime;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(vol,t0+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g).connect(audioCtx.destination); o.start(t0); o.stop(t0+dur+0.03); }
+function beepCountdown(ph){ const rem=Math.round(ph.endAt-elapsed());
+  if(!beepFired[ph.key])beepFired[ph.key]=new Set(); const set=beepFired[ph.key];
+  [10,3,2,1].forEach(sx=>{ if(rem===sx && !set.has(sx)){ set.add(sx); beep(sx===10?'warn':'tick'); } }); }
+
+/* ===== scherm wakker houden ===== */
+async function reqWake(){ try{ if('wakeLock' in navigator && !wakeLock){ wakeLock=await navigator.wakeLock.request('screen');
+  if(wakeLock&&wakeLock.addEventListener)wakeLock.addEventListener('release',()=>{ wakeLock=null; }); } }catch(e){ wakeLock=null; } }
+function relWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && state==='running') reqWake(); });
+
+/* ===== verse-data-indicator per sensor ===== */
+function freshDots(){ const now=Date.now(); const ts={pwr:lastRx.pwr,hr:lastRx.hr,core:lastRx.core,trn:lastRx.trn||lastRx.pwr};
+  const lim={pwr:STALE_MS,hr:STALE_MS,core:CORE_STALE_MS,trn:STALE_MS};
+  ['pwr','hr','core','trn'].forEach(k=>{ const connected=(k==='trn')?!!trnDev:!!dev[k];
+    const stale = ts[k]>0 && (now-ts[k])>lim[k];
+    [$('dot-'+k),$('cdot-'+k)].forEach(dot=>{ if(!dot||!connected||dot.classList.contains('recon'))return;
+      dot.classList.toggle('warn',stale); dot.classList.toggle('on',!stale); }); }); }
+
+/* ===== lactaat + RPE pop-up (na elke ronde) ===== */
+function lapName(l){ const warmS=(proto&&proto.warmS)||WARM_S, stepS=(proto&&proto.stepS)||STEP_S;
+  if(l.t0<warmS-1)return 'Opwarming';
+  if(stepsEndAt!=null && l.t0>=stepsEndAt-0.5)return 'Cooldown';
+  const i=Math.round((l.t0-warmS)/stepS); return 'Stap '+(i+1); }
+function commitPrompt(){ if(promptLapIdx!=null && laps[promptLapIdx]){
+    const lv=parseFloat($('lacIn').value), rv=parseFloat($('rpeIn').value);
+    if(isFinite(lv))laps[promptLapIdx].lac=lv; if(isFinite(rv))laps[promptLapIdx].rpe=rv; } }
+function openLacPrompt(idx){ const l=laps[idx]; if(!l)return;
+  commitPrompt(); renderLaps(); drawLactate();
+  promptLapIdx=idx;
+  $('lacTitle').textContent='Lactaat & RPE \u2014 '+lapName(l);
+  $('lacSub').textContent='Afgelopen stap: '+(l.ap==null?'\u2013':Math.round(l.ap)+' W')+'. Prik en geef de waarde in.';
+  $('lacIn').value=l.lac==null?'':l.lac; $('rpeIn').value=l.rpe==null?'':l.rpe;
+  $('lacModal').classList.add('open'); setTimeout(()=>{try{$('lacIn').focus();}catch(e){}},60); }
+function closeLac(){ $('lacModal').classList.remove('open'); promptLapIdx=null; }
+function dismissLac(advance){ commitPrompt(); renderLaps(); drawLactate(); saveState(); closeLac(); if(advance)afterPrompt(); }
+function afterPrompt(){ if(pendingAnalysis){ pendingAnalysis=false; openAnalysis(); } }
+
+/* ===== Einde test -> opslaan + cooldown + analyse ===== */
+function endTest(){ if(!proto || state!=='running' || stepsEndAt!=null)return; ensureAudio();
+  const before=laps.length; markLap(); const added=laps.length>before;
+  stepsEndAt=elapsed(); lastPhase='cd'; setTargetPower(proto.startW); beep('go');   /* cooldown = startvermogen */
+  updateControls(); saveState();
+  if(added) openLacPrompt(laps.length-1);   /* enkel lactaat-/RPE-data verzamelen; analyse-/curveweergave volgt later voor het verslag */ }
+
+/* ===== checklist vooraf ===== */
+function buildChecklist(){ $('calChk').checked=false;
+  const ck=(ok,label,opt)=>`<div class="ck ${ok?'ok':(opt?'opt':'no')}"><span class="ckdot"></span><span>${label}</span><span class="ckst">${ok?'\u2713 ok':(opt?'optioneel':'ontbreekt')}</span></div>`;
+  const hasPwr=!!trnDev||!!dev.pwr, ath=$('athlete').value.trim(), wt=parseFloat($('wkg').value);
+  $('pmCheck').innerHTML =
+    ck(!!trnDev,'Trainer (KICKR) verbonden \u2014 nodig voor ERG',false)+
+    ck(hasPwr,'Vermogensbron actief',false)+
+    ck(!!dev.hr,'Hartslag verbonden — nodig voor een test',false)+
+    ck(!!dev.core,'CORE temp verbonden',true)+
+    ck(!!ath,'Naam atleet ingevuld (atleetgegevens)',true)+
+    ck(wt>0,'Gewicht ingevuld (atleetgegevens)',true);
+  refreshProtoEnable(); }
+function refreshProtoEnable(){ document.querySelectorAll('.proto').forEach(b=>{ b.disabled=false; });
+  $('pmWarn').textContent = !trnDev ? 'De trainer (KICKR) is nog niet verbonden \u2014 je kan het protocol al kiezen; het wordt pas opgelegd zodra de trainer verbonden is.'
+    : (!$('calChk').checked ? 'Tip: vink de kalibratie aan voor je de test start.' : ''); }
+
+/* ===== analyse: punten, interpolatie, polyfit, Dmax ===== */
+function anaPoints(){ return laps.filter(l=>l.lac!=null&&l.ap!=null&&(stepsEndAt==null||l.t0<stepsEndAt))
+  .map(l=>({p:l.ap,lac:l.lac,hr:l.ah})).sort((a,b)=>a.p-b.p); }
+function interpAt(pts,key,power){ if(!pts.length)return null;
+  if(power<=pts[0].p)return pts[0][key]; if(power>=pts[pts.length-1].p)return pts[pts.length-1][key];
+  for(let i=1;i<pts.length;i++){ if(power<=pts[i].p){ const a=pts[i-1],b=pts[i]; if(b.p===a.p)return b[key];
+    const fr=(power-a.p)/(b.p-a.p), va=a[key],vb=b[key]; if(va==null||vb==null)return va!=null?va:vb; return va+(vb-va)*fr; } }
+  return pts[pts.length-1][key]; }
+function powerAtLac(pts,target){ let mi=0; for(let i=1;i<pts.length;i++)if(pts[i].lac<pts[mi].lac)mi=i;
+  for(let i=Math.max(1,mi+1);i<pts.length;i++){ const a=pts[i-1],b=pts[i];
+    if((a.lac<=target&&b.lac>=target)||(a.lac>=target&&b.lac<=target)){ if(b.lac===a.lac)return a.p;
+      const fr=(target-a.lac)/(b.lac-a.lac); return a.p+(b.p-a.p)*fr; } }
+  return pts[pts.length-1].p; }
+function gauss(M,b){ const n=b.length, A=M.map((row,i)=>row.concat([b[i]]));
+  for(let c=0;c<n;c++){ let piv=c; for(let r=c+1;r<n;r++)if(Math.abs(A[r][c])>Math.abs(A[piv][c]))piv=r;
+    const tmp=A[c];A[c]=A[piv];A[piv]=tmp; const dg=A[c][c]; if(Math.abs(dg)<1e-12)return null;
+    for(let j=c;j<=n;j++)A[c][j]/=dg;
+    for(let r=0;r<n;r++)if(r!==c){const fc=A[r][c];for(let j=c;j<=n;j++)A[r][j]-=fc*A[c][j];} }
+  return A.map(row=>row[n]); }
+function polyFit(xs,ys,deg){ const n=xs.length,m=deg+1, M=Array.from({length:m},()=>new Array(m).fill(0)),b=new Array(m).fill(0);
+  for(let r=0;r<m;r++){ for(let c=0;c<m;c++){ let sm=0;for(let k=0;k<n;k++)sm+=Math.pow(xs[k],r+c); M[r][c]=sm; }
+    let sm=0;for(let k=0;k<n;k++)sm+=ys[k]*Math.pow(xs[k],r); b[r]=sm; }
+  return gauss(M,b); }
+function polyVal(co,x){ let v=0;for(let i=0;i<co.length;i++)v+=co[i]*Math.pow(x,i);return v; }
+function dmaxModified(pts){ if(pts.length<4)return null;
+  const pmin=pts[0].p,pmax=pts[pts.length-1].p,rng=(pmax-pmin)||1;
+  const co=polyFit(pts.map(d=>(d.p-pmin)/rng),pts.map(d=>d.lac),3); if(!co)return null;
+  let si=0; for(let i=1;i<pts.length;i++){ if(pts[i].lac-pts[i-1].lac>0.4){si=i-1;break;} }
+  const ax=pts[si].p,ay=pts[si].lac,bx=pts[pts.length-1].p,by=pts[pts.length-1].lac;
+  const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy)||1; let bestP=ax,bestD=-1;
+  for(let i=0;i<=200;i++){ const p=ax+(bx-ax)*i/200, lac=polyVal(co,(p-pmin)/rng);
+    const dist=Math.abs(dy*p-dx*lac+bx*ay-by*ax)/len; if(dist>bestD){bestD=dist;bestP=p;} }
+  return bestP; }
+function computeThresholds(){ const pts=anaPoints(); if(pts.length<2){lt1=null;lt2=null;return;}
+  const minLac=Math.min.apply(null,pts.map(d=>d.lac));
+  let p1=powerAtLac(pts,minLac+0.4); let p2=dmaxModified(pts);
+  if(p2==null)p2=powerAtLac(pts,Math.max(4,minLac+2));
+  const pmin=pts[0].p,pmax=pts[pts.length-1].p;
+  p1=Math.max(pmin,Math.min(pmax,p1)); p2=Math.max(pmin,Math.min(pmax,p2));
+  if(p2<p1)p2=Math.min(pmax,p1+STEP_W);
+  lt1={p:p1,lac:interpAt(pts,'lac',p1),hr:interpAt(pts,'hr',p1)};
+  lt2={p:p2,lac:interpAt(pts,'lac',p2),hr:interpAt(pts,'hr',p2)}; }
+function anaReadout(){ const f=o=>o?`${Math.round(o.p)} W \u00b7 ${o.lac==null?'\u2013':o.lac.toFixed(1)} mmol/l \u00b7 ${o.hr==null?'\u2013':Math.round(o.hr)} bpm`:'\u2013';
+  const a1=(anaDrag==='lt1')?' active':'', a2=(anaDrag==='lt2')?' active':'';
+  $('anaRead').innerHTML =
+    `<div class="b lt1${a1}"><div class="k">LT1 \u00b7 aeroob</div><div class="v">${f(lt1)}</div></div>`+
+    `<div class="b lt2${a2}"><div class="k">LT2 \u00b7 anaeroob (Dmax-mod)</div><div class="v">${f(lt2)}</div></div>`; }
+
+/* ===== analyse-grafiek + sleepbare drempels ===== */
+const anaCv=$('anaChart'), anactx=anaCv?anaCv.getContext('2d'):null;
+let anaGeo=null, anaDrag=null, anaGrabDX=0;
+function sizeAna(){ if(!anaCv||!anactx)return; const r=anaCv.getBoundingClientRect(),d=devicePixelRatio||1;
+  anaCv.width=Math.max(1,Math.round(r.width*d)); anaCv.height=Math.max(1,Math.round(r.height*d)); anactx.setTransform(d,0,0,d,0,0); }
+function anaX(p){ const g=anaGeo; return g?g.padL+((p-g.xa)/(g.xb-g.xa))*g.cw:0; }
+function anaXinv(px){ const g=anaGeo; return g?g.xa+((px-g.padL)/g.cw)*(g.xb-g.xa):0; }
+function drawAnalysis(){ if(!anactx)return; sizeAna();
+  const r=anaCv.getBoundingClientRect(),W=r.width,H=r.height; anactx.clearRect(0,0,W,H);
+  const pts=anaPoints();
+  const padL=46,padR=16,padT=18,padB=30,cw=W-padL-padR,ch=H-padT-padB;
+  if(pts.length<1){ anactx.fillStyle='#8a8268';anactx.font='13px ui-sans-serif,sans-serif';anactx.textAlign='center';anactx.textBaseline='middle';
+    anactx.fillText('Geen lactaatwaarden ingevuld',W/2,H/2); anaGeo=null; anaReadout(); return; }
+  let xa=Math.min.apply(null,pts.map(d=>d.p)), xb=Math.max.apply(null,pts.map(d=>d.p));
+  const padx=Math.max(15,(xb-xa)*0.08); xa-=padx; xb+=padx; if(xb-xa<60){xa-=30;xb+=30;}
+  const lmax=Math.max(6,Math.ceil(Math.max.apply(null,pts.map(d=>d.lac))+0.6));
+  anaGeo={padL,padR,padT,padB,cw,ch,xa,xb,lmax};
+  const X=p=>padL+((p-xa)/(xb-xa))*cw, Y=v=>padT+ch-(v/lmax)*ch;
+  anactx.font='10px ui-monospace,monospace'; anactx.textBaseline='middle';
+  for(let gv=0;gv<=lmax+1e-9;gv+=2){const yy=Y(gv);
+    anactx.strokeStyle='rgba(28,26,18,.08)';anactx.beginPath();anactx.moveTo(padL,yy);anactx.lineTo(W-padR,yy);anactx.stroke();
+    anactx.fillStyle='#8a8268';anactx.textAlign='right';anactx.fillText(gv.toFixed(0),padL-6,yy);}
+  anactx.textAlign='center';anactx.textBaseline='alphabetic';anactx.fillStyle='#8a8268';
+  for(let i=0;i<=5;i++){const pv=xa+(xb-xa)*i/5,xx=X(pv);anactx.fillText(Math.round(pv),Math.max(padL,Math.min(W-padR,xx)),H-9);}
+  anactx.textAlign='left';anactx.fillText('mmol/l',6,padT+2); anactx.textAlign='right';anactx.fillText('watt',W-6,H-9);
+  if(pts.length>=4){ const pmin=pts[0].p,pmax=pts[pts.length-1].p,rng=(pmax-pmin)||1;
+    const co=polyFit(pts.map(d=>(d.p-pmin)/rng),pts.map(d=>d.lac),3);
+    if(co){ anactx.strokeStyle='rgba(47,143,134,.35)';anactx.lineWidth=1.5;anactx.beginPath();
+      for(let i=0;i<=120;i++){const p=pmin+(pmax-pmin)*i/120;const v=Math.max(0,polyVal(co,(p-pmin)/rng));const xx=X(p),yy=Y(v);i?anactx.lineTo(xx,yy):anactx.moveTo(xx,yy);}
+      anactx.stroke();
+      let si=0; for(let i=1;i<pts.length;i++){if(pts[i].lac-pts[i-1].lac>0.4){si=i-1;break;}}
+      anactx.strokeStyle='rgba(28,26,18,.22)';anactx.setLineDash([5,4]);anactx.lineWidth=1;
+      anactx.beginPath();anactx.moveTo(X(pts[si].p),Y(pts[si].lac));anactx.lineTo(X(pts[pts.length-1].p),Y(pts[pts.length-1].lac));anactx.stroke();anactx.setLineDash([]); } }
+  anactx.strokeStyle='#2f8f86';anactx.lineWidth=2.2;anactx.lineJoin='round';anactx.beginPath();
+  pts.forEach((d,i)=>{const xx=X(d.p),yy=Y(d.lac);i?anactx.lineTo(xx,yy):anactx.moveTo(xx,yy);});anactx.stroke();
+  anactx.fillStyle='#2f8f86';pts.forEach(d=>{anactx.beginPath();anactx.arc(X(d.p),Y(d.lac),4,0,7);anactx.fill();});
+  function rr(x,y,w,h,r){ anactx.beginPath(); anactx.moveTo(x+r,y);
+    anactx.arcTo(x+w,y,x+w,y+h,r); anactx.arcTo(x+w,y+h,x,y+h,r);
+    anactx.arcTo(x,y+h,x,y,r); anactx.arcTo(x,y,x+w,y,r); anactx.closePath(); }
+  function vline(o,color,lab,active){ if(!o||o.p==null)return; const xx=X(o.p);
+    anactx.strokeStyle=color; anactx.lineWidth=active?3.4:2.4;
+    anactx.beginPath(); anactx.moveTo(xx,padT); anactx.lineTo(xx,padT+ch); anactx.stroke();
+    const hy=padT+ch*0.5; anactx.fillStyle=color; anactx.beginPath(); anactx.arc(xx,hy,active?7.5:6,0,7); anactx.fill();
+    anactx.fillStyle='#fff'; anactx.beginPath(); anactx.arc(xx,hy,2.3,0,7); anactx.fill();
+    const l1=`${lab}  ${Math.round(o.p)} W`;
+    const l2=`${o.lac==null?'\u2013':o.lac.toFixed(1)} mmol \u00b7 ${o.hr==null?'\u2013':Math.round(o.hr)} bpm`;
+    anactx.font='bold 11.5px ui-sans-serif,sans-serif'; const w1=anactx.measureText(l1).width;
+    anactx.font='10.5px ui-sans-serif,sans-serif'; const w2=anactx.measureText(l2).width;
+    const bw=Math.max(w1,w2)+14, bh=33, rightish=(xx+bw+10>W-padR);
+    const bx=rightish?xx-bw-7:xx+7, by=padT+3;
+    anactx.fillStyle=active?'#ffffff':'rgba(255,255,255,.93)'; anactx.strokeStyle=color; anactx.lineWidth=active?1.8:1.2;
+    rr(bx,by,bw,bh,7); anactx.fill(); anactx.stroke();
+    anactx.textAlign='left'; anactx.textBaseline='alphabetic';
+    anactx.fillStyle=color; anactx.font='bold 11.5px ui-sans-serif,sans-serif'; anactx.fillText(l1,bx+7,by+14);
+    anactx.fillStyle='#5b5440'; anactx.font='10.5px ui-sans-serif,sans-serif'; anactx.fillText(l2,bx+7,by+27); }
+  const _ord = anaDrag==='lt1' ? [['lt2',lt2,'#e0762a','LT2'],['lt1',lt1,'#2f9e44','LT1']]
+                               : [['lt1',lt1,'#2f9e44','LT1'],['lt2',lt2,'#e0762a','LT2']];
+  _ord.forEach(it=>{ if(it[1])vline(it[1],it[2],it[3],anaDrag===it[0]); });
+  anaReadout(); }
+function openAnalysis(){ if(!lt1&&!lt2)computeThresholds();
+  $('anaModal').classList.add('open');
+  const pts=anaPoints();
+  $('anaNote').textContent = pts.length<4 ? 'Te weinig meetpunten voor Dmax \u2014 plaats de drempels zelf door te slepen.'
+    : 'LT1 = laagste lactaat + 0,4 mmol/l. LT2 = gemodificeerde Dmax (3e-orde fit). Sleep de lijnen om bij te stellen.';
+  requestAnimationFrame(()=>{ sizeAna(); drawAnalysis(); }); }
+function closeAnalysis(){ $('anaModal').classList.remove('open'); anaDrag=null; }
+function anaEvX(e){ const r=anaCv.getBoundingClientRect(); const cx=(e.clientX!=null)?e.clientX:(e.touches&&e.touches[0]?e.touches[0].clientX:0); return cx-r.left; }
+function anaMove(e){ const pts=anaPoints(); if(!pts.length||!anaGeo)return;
+  const pmin=pts[0].p,pmax=pts[pts.length-1].p; let p=anaXinv(anaEvX(e)+anaGrabDX); p=Math.max(pmin,Math.min(pmax,p));
+  const obj={p,lac:interpAt(pts,'lac',p),hr:interpAt(pts,'hr',p)};
+  if(anaDrag==='lt1')lt1=obj; else lt2=obj; drawAnalysis(); }
+if(anaCv){
+  anaCv.addEventListener('pointerdown',e=>{ if(!anaGeo)return; const x=anaEvX(e);
+    const lx1=lt1?anaX(lt1.p):null, lx2=lt2?anaX(lt2.p):null;
+    const d1=lx1==null?1e9:Math.abs(x-lx1), d2=lx2==null?1e9:Math.abs(x-lx2);
+    if(Math.min(d1,d2)>22)return; anaDrag=(d1<=d2)?'lt1':'lt2';
+    anaGrabDX=((anaDrag==='lt1')?lx1:lx2)-x;
+    try{anaCv.setPointerCapture(e.pointerId);}catch(_){} drawAnalysis(); e.preventDefault(); });
+  anaCv.addEventListener('pointermove',e=>{ if(anaDrag){anaMove(e);e.preventDefault();} });
+  anaCv.addEventListener('pointerup',()=>{ if(anaDrag){anaDrag=null; saveState(); drawAnalysis();} });
+  anaCv.addEventListener('pointercancel',()=>{ if(anaDrag){anaDrag=null; drawAnalysis();} });
+}
+
+/* ===== nieuwe wiring ===== */
+$('btnEnd').addEventListener('click',endTest);
+$('btnAna').addEventListener('click',openAnalysis);
+$('calChk').addEventListener('change',refreshProtoEnable);
+$('lacSave').addEventListener('click',()=>dismissLac(true));
+$('lacLater').addEventListener('click',()=>dismissLac(true));
+$('lacX').addEventListener('click',()=>dismissLac(true));
+$('lacModal').addEventListener('click',e=>{ if(e.target===$('lacModal'))dismissLac(true); });
+$('anaSave').addEventListener('click',()=>{ saveState(); closeAnalysis(); });
+$('anaReset').addEventListener('click',()=>{ computeThresholds(); drawAnalysis(); });
+$('anaX').addEventListener('click',closeAnalysis);
+$('anaModal').addEventListener('click',e=>{ if(e.target===$('anaModal'))closeAnalysis(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ dismissLac(false); closeAnalysis(); } });
+addEventListener('resize',()=>{ if($('anaModal').classList.contains('open'))drawAnalysis(); });
+
+/* ===== modus: testen <-> vrij & training ===== */
+function setMode(m){ m=(m==='train')?'train':'test'; if(m===mode)return;
+  if(state!=='idle'){ fail('Stop eerst de huidige sessie om van modus te wisselen.'); updateControls(); return; }
+  fail(''); mode=m;
+  if(mode==='test'){ workout=null; workoutName=''; if(ctrlChar)setTargetPower(0); }
+  else { proto=null; testSession=false; lastPhase=null; if(ctrlChar){ if(!workout&&freeWatt>0)setTargetPower(freeWatt); else if(!workout)setFreeRide(); } }
+  drawLactate(); updateControls(); render(); draw(); saveState(); }
+document.querySelectorAll('.modetab').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+function loadWorkout(segs,name){ if(state!=='idle'){fail('Stop eerst de huidige sessie.');return;}
+  workout=(segs&&segs.length)?segs:null; workoutName=name||'Training'; lastPhase=null;
+  updateControls(); render(); draw(); saveState(); }
+function chooseFree(){ if(state!=='idle'){fail('Stop eerst de huidige sessie.');return;}
+  workout=null; workoutName=''; lastPhase=null;
+  if(ctrlChar){ if(freeWatt>0)setTargetPower(freeWatt); else setFreeRide(); }
+  updateControls(); render(); draw(); saveState(); }
+$('btnFree').addEventListener('click',chooseFree);
+$('freeW').addEventListener('input',()=>{ const v=parseInt($('freeW').value,10); freeWatt=(isFinite(v)&&v>0)?Math.min(2000,v):null;
+  if(ctrlChar&&mode==='train'&&!workout&&state==='running'){ if(freeWatt>0)setTargetPower(freeWatt); else setFreeRide(); }
+  render(); saveState(); });
+
+/* ===== trainingsbouwer (%FTP) ===== */
+let buildRows=[];
+function parseDur(s){ s=(''+s).trim(); if(!s)return 0;
+  if(/^\d+$/.test(s))return parseInt(s,10);
+  const p=s.split(':').map(x=>parseInt(x,10));
+  if(p.length===2&&p.every(n=>isFinite(n)))return p[0]*60+p[1];
+  if(p.length===3&&p.every(n=>isFinite(n)))return p[0]*3600+p[1]*60+p[2];
+  const n=parseFloat(s); return isFinite(n)?Math.round(n):0; }
+function rowWatt(r){ return r.unit==='w'?(r.val||0):(ftpVal()?Math.round((r.val||0)/100*ftpVal()):0); }
+function defWatt(pct){ return Math.round(pct/100*(ftpVal()||250)); }   /* doelwatt; valt terug op FTP 250 zolang die leeg is */
+function defaultRow(){ return {kind:'steady',dur:300,unit:'w',val:defWatt(65),cad:null}; }
+/* set: compact in de bouwer (1× getoond), uitgevouwen in de training */
+function expandRows(rows){ const out=[]; let i=0;
+  while(i<rows.length){ const r=rows[i];
+    if(r.set){ const sid=r.set, rep=r.setRep||1, blk=[];
+      while(i<rows.length && rows[i].set===sid){ blk.push(rows[i]); i++; }
+      for(let k=0;k<rep;k++)for(const b of blk)out.push({...b});
+    } else { out.push({...r}); i++; } }
+  return out; }
+function collapseSegs(segs){ const out=[]; let i=0;
+  const m=s=>({kind:s.kind,dur:s.dur,unit:s.w!=null?'w':'pct',val:s.w!=null?s.w:s.pct,cad:s.cad||null});
+  while(i<segs.length){ const s=segs[i];
+    if(s.set){ const sid=s.set, rep=s.setRep||1; let j=i; while(j<segs.length&&segs[j].set===sid)j++;
+      const size=Math.max(1,Math.round((j-i)/rep));
+      for(let k=0;k<size;k++){ const o=m(segs[i+k]); o.set=sid; o.setRep=rep; out.push(o); } i=j;
+    } else { out.push(m(s)); i++; } }
+  return out; }
+function builderUnits(){ const u=[]; let i=0;
+  while(i<buildRows.length){ const s=buildRows[i].set||null;
+    if(s){ let j=i; while(j<buildRows.length&&(buildRows[j].set||null)===s)j++; u.push({a:i,b:j}); i=j; }
+    else { u.push({a:i,b:i+1}); i++; } }
+  return u; }
+function moveUnitOf(idx,dir){ const u=builderUnits(); const ui=u.findIndex(x=>idx>=x.a&&idx<x.b); if(ui<0)return;
+  const k=ui+dir; if(k<0||k>=u.length)return;
+  const A=u[Math.min(ui,k)], B=u[Math.max(ui,k)];
+  const segA=buildRows.slice(A.a,A.b), segB=buildRows.slice(B.a,B.b);
+  buildRows.splice(A.a, B.b-A.a, ...segB, ...segA); }
+function openBuild(){ if(state!=='idle'){fail('Stop eerst de huidige sessie.');return;}
+  if(!buildRows.length){ buildRows=(workout&&workout.length) ? collapseSegs(workout)
+      : [{kind:'warm',dur:600,unit:'w',val:defWatt(55),cad:null},{kind:'steady',dur:1200,unit:'w',val:defWatt(70),cad:null},{kind:'cool',dur:300,unit:'w',val:defWatt(50),cad:null}]; }
+  $('wktInt').hidden=true; renderBuild(); $('buildModal').classList.add('open'); }
+function closeBuild(){ $('buildModal').classList.remove('open'); }
+function renderBuild(){ const f=ftpVal(); $('bmFtp').textContent=f?Math.round(f)+' W':'geen FTP';
+  let h='', openSet=null;
+  buildRows.forEach((r,i)=>{ const col=SEGCOL[r.kind]||'#c8930f'; const wtxt=(r.unit==='pct'&&!f)?'–':rowWatt(r)+' W';
+    const rs=r.set||null;
+    if(rs!==openSet){ if(openSet!=null)h+=`<div class="wkt-setfoot"><button data-a="setadd" data-set="${openSet}">+ blok in set</button></div></div>`;
+      if(rs!=null)h+=`<div class="wkt-set"><div class="wkt-set-head"><span class="wsh-lbl">↻ Set</span>`+
+        `<label class="wsh-rep"><input data-a="setrep" data-i="${i}" type="number" min="1" max="40" step="1" value="${r.setRep||1}">&times; herhaling</label>`+
+        `<span class="wsh-acts"><button data-a="setup" data-i="${i}" title="set omhoog">↑</button><button data-a="setdn" data-i="${i}" title="set omlaag">↓</button><button data-a="setdel" data-i="${i}" title="set verwijderen">✕</button></span></div>`;
+      openSet=rs; }
+    const acts = `<span class="wkt-acts"><button data-a="up" title="${rs!=null?'blok omhoog (binnen set)':'omhoog'}">↑</button><button data-a="dn" title="${rs!=null?'blok omlaag (binnen set)':'omlaag'}">↓</button><button data-a="dup" title="dupliceer">⧉</button><button data-a="del" title="verwijder">✕</button></span>`;
+    h+=`<div class="wkt-row" data-i="${i}"><span class="wbar" style="background:${col}"></span>`+
+       `<select data-f="kind">`+SEGDEF.map(s=>`<option value="${s[0]}"${s[0]===r.kind?' selected':''}>${s[1]}</option>`).join('')+`</select>`+
+       `<input data-f="dur" value="${fmtClock(r.dur)}" inputmode="numeric">`+
+       `<span class="wkt-val"><input data-f="val" type="number" min="0" max="2000" step="${r.unit==='w'?5:1}" value="${r.val}"><button class="wkt-unit" data-a="unit" title="schakel tussen %FTP en watt">${r.unit==='w'?'W':'%'}</button></span>`+
+       `<input data-f="cad" type="number" min="40" max="130" step="1" placeholder="rpm" value="${r.cad==null?'':r.cad}">`+
+       `<span class="wkt-w mono">${wtxt}</span>`+acts+`</div>`; });
+  if(openSet!=null)h+=`<div class="wkt-setfoot"><button data-a="setadd" data-set="${openSet}">+ blok in set</button></div></div>`;
+  $('wktList').innerHTML=h||'<div class="ana-note">Nog geen blokken — voeg er een toe.</div>';
+  $('wktTot').textContent='Totaal '+fmtClock(expandRows(buildRows).reduce((s,r)=>s+r.dur,0));
+  $('bmWarn').textContent=(f||buildRows.every(r=>r.unit==='w'))?'':'Vul FTP in de atletenbalk in voor de %FTP-doelen (of zet blokken op W).';
+  renderBuildPrev(); }
+function renderBuildPrev(){ const exp=expandRows(buildRows); const tot=exp.reduce((s,r)=>s+r.dur,0)||1;
+  const maxW=Math.max(150,Math.max.apply(null,exp.map(rowWatt).concat([0])));
+  let h='',acc=0;
+  exp.forEach(r=>{ const left=acc/tot*100,wd=r.dur/tot*100,ht=Math.max(5,Math.min(100,rowWatt(r)/maxW*100));
+    h+=`<span style="position:absolute;left:${left}%;width:${wd}%;bottom:0;height:${ht}%;background:${hexA(SEGCOL[r.kind]||'#c8930f',.85)};border-right:1px solid #fff"></span>`; acc+=r.dur; });
+  $('wktPrev').innerHTML=h; }
+$('wktList').addEventListener('input',e=>{
+  if(e.target.dataset && e.target.dataset.a==='setrep'){ const si=+e.target.dataset.i, sid=buildRows[si]&&buildRows[si].set;
+    const n=Math.max(1,Math.min(40,parseInt(e.target.value,10)||1));
+    buildRows.forEach(r=>{ if((r.set||null)===sid)r.setRep=n; });
+    $('wktTot').textContent='Totaal '+fmtClock(expandRows(buildRows).reduce((s,x)=>s+x.dur,0)); renderBuildPrev(); return; }
+  const row=e.target.closest('.wkt-row'); if(!row)return; const i=+row.dataset.i,r=buildRows[i],f=e.target.dataset.f; if(!r||!f)return;
+  if(f==='dur')r.dur=Math.max(1,parseDur(e.target.value));
+  else if(f==='val'){const v=parseFloat(e.target.value);r.val=isFinite(v)?v:0;}
+  else if(f==='cad'){const v=parseInt(e.target.value,10);r.cad=isFinite(v)?v:null;}
+  else if(f==='kind')r.kind=e.target.value;
+  const wspan=row.querySelector('.wkt-w'); if(wspan)wspan.textContent=(r.unit==='pct'&&!ftpVal())?'–':rowWatt(r)+' W';
+  if(f==='kind'){const bar=row.querySelector('.wbar'); if(bar)bar.style.background=SEGCOL[r.kind]||'#c8930f';}
+  $('wktTot').textContent='Totaal '+fmtClock(expandRows(buildRows).reduce((s,x)=>s+x.dur,0)); renderBuildPrev(); });
+$('wktList').addEventListener('change',e=>{ const d=e.target.dataset||{}; if(d.a==='setrep'||d.f==='kind'||d.f==='dur')renderBuild(); });
+function swapWithinSet(i,dir){ const j=i+dir; if(j<0||j>=buildRows.length)return;
+  if((buildRows[i].set||null)!==(buildRows[j].set||null))return;   /* niet over de set-rand: set blijft heel */
+  const t=buildRows[i]; buildRows[i]=buildRows[j]; buildRows[j]=t; }
+$('wktList').addEventListener('click',e=>{ const b=e.target.closest('button[data-a]'); if(!b)return; const a=b.dataset.a;
+  if(a==='setadd'){ const sid=+b.dataset.set; let last=-1,rep=1;
+    buildRows.forEach((r,k)=>{ if(r.set===sid){last=k;rep=r.setRep||1;} });
+    if(last>=0)buildRows.splice(last+1,0,{kind:'steady',dur:120,unit:'w',val:defWatt(60),cad:null,set:sid,setRep:rep});
+    renderBuild(); return; }
+  if(a==='setup'||a==='setdn'||a==='setdel'){ const si=+b.dataset.i;
+    if(a==='setdel'){ const sid=buildRows[si].set; buildRows=buildRows.filter(r=>(r.set||null)!==sid); }
+    else moveUnitOf(si, a==='setup'?-1:1);
+    renderBuild(); return; }
+  const row=b.closest('.wkt-row'); if(!row)return; const i=+row.dataset.i;
+  if(a==='del')buildRows.splice(i,1);
+  else if(a==='dup')buildRows.splice(i+1,0,{...buildRows[i]});
+  else if(a==='up'){ buildRows[i].set?swapWithinSet(i,-1):moveUnitOf(i,-1); }
+  else if(a==='dn'){ buildRows[i].set?swapWithinSet(i,1):moveUnitOf(i,1); }
+  else if(a==='unit'){ const r=buildRows[i], f=ftpVal(), curW=rowWatt(r);
+    if(r.unit==='w'){ r.unit='pct'; r.val=f?Math.max(0,Math.round(curW/f*100)):r.val; }
+    else { r.unit='w'; r.val=curW; } }
+  renderBuild(); });
+$('bmAdd').addEventListener('click',()=>{ buildRows.push(defaultRow()); renderBuild(); });
+$('bmClear').addEventListener('click',()=>{ buildRows=[]; renderBuild(); });
+function nextSetId(){ let m=0; buildRows.forEach(r=>{ if(r.set>m)m=r.set; }); return m+1; }
+/* dynamische interval-set: meerdere blokken per set, standaard 2 (uitbreidbaar) */
+let intBlocks=[];
+function defaultIntBlocks(){ return [{kind:'work',dur:240,unit:'w',val:defWatt(100)},{kind:'rest',dur:240,unit:'w',val:defWatt(55)}]; }
+function renderIntBlocks(){ let h='';
+  intBlocks.forEach((b,i)=>{ h+=`<div class="int-blk" data-bi="${i}"><span class="int-blk-num">${i+1}</span>`+
+    `<select data-bf="kind" data-bi="${i}">`+SEGDEF.map(s=>`<option value="${s[0]}"${s[0]===b.kind?' selected':''}>${s[1]}</option>`).join('')+`</select>`+
+    `<input data-bf="dur" data-bi="${i}" type="text" inputmode="numeric" value="${fmtClock(b.dur)}">`+
+    `<span class="valunit"><input data-bf="val" data-bi="${i}" type="number" min="0" max="2000" step="${b.unit==='w'?5:1}" value="${b.val}"><button data-a="bunit" data-bi="${i}" type="button" class="wkt-unit" title="watt of %FTP">${b.unit==='w'?'W':'%'}</button></span>`+
+    `<button data-a="rmblk" data-bi="${i}" class="int-rm" title="verwijder blok"${intBlocks.length<=1?' disabled':''}>&times;</button></div>`; });
+  $('intBlocks').innerHTML=h; }
+$('bmAddInt').addEventListener('click',()=>{ const sh=$('wktInt').hidden; $('wktInt').hidden=!sh; if(sh){ intBlocks=defaultIntBlocks(); renderIntBlocks(); } });
+$('intCancel').addEventListener('click',()=>{ $('wktInt').hidden=true; });
+$('intAddBlk').addEventListener('click',()=>{ const last=intBlocks[intBlocks.length-1]||{kind:'work',dur:240,unit:'w',val:defWatt(100)}; intBlocks.push({...last}); renderIntBlocks(); });
+$('intBlocks').addEventListener('input',e=>{ const d=e.target.dataset||{}; const i=+d.bi, b=intBlocks[i]; if(!b||d.bf==null)return;
+  if(d.bf==='dur')b.dur=Math.max(1,parseDur(e.target.value));
+  else if(d.bf==='val'){const v=parseFloat(e.target.value);b.val=isFinite(v)?v:0;}
+  else if(d.bf==='kind')b.kind=e.target.value; });
+$('intBlocks').addEventListener('click',e=>{ const btn=e.target.closest('button[data-a]'); if(!btn)return; const i=+btn.dataset.bi, a=btn.dataset.a, b=intBlocks[i];
+  if(a==='bunit'){ const f=ftpVal(), curW=rowWatt(b); if(b.unit==='w'){b.unit='pct';b.val=f?Math.max(0,Math.round(curW/f*100)):b.val;} else {b.unit='w';b.val=curW;} }
+  else if(a==='rmblk'){ if(intBlocks.length>1)intBlocks.splice(i,1); }
+  renderIntBlocks(); });
+$('intAdd').addEventListener('click',()=>{ const n=Math.max(1,Math.min(40,parseInt($('intN').value,10)||1));
+  if(!intBlocks.length)return; const sid=nextSetId();
+  intBlocks.forEach(b=>buildRows.push({kind:b.kind,dur:Math.max(1,b.dur),unit:b.unit,val:b.val,cad:null,set:sid,setRep:n}));
+  $('wktInt').hidden=true; renderBuild(); });
+$('bmSave').addEventListener('click',()=>{ if(!buildRows.length){$('bmWarn').textContent='Voeg minstens één blok toe.';return;}
+  const segs=expandRows(buildRows).map(r=>({kind:r.kind,dur:Math.max(1,r.dur),cad:r.cad,label:segKindName(r.kind),pct:r.unit==='pct'?r.val:null,w:r.unit==='w'?r.val:null,set:r.set||null,setRep:r.setRep||null}));
+  loadWorkout(segs,'Eigen training'); closeBuild(); });
+$('btnBuild').addEventListener('click',openBuild);
+$('bmClose').addEventListener('click',closeBuild);
+$('bmCancel').addEventListener('click',closeBuild);
+$('buildModal').addEventListener('click',e=>{ if(e.target===$('buildModal'))closeBuild(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeBuild(); });
+
+/* ===== .fit-workout import (training om te volgen via ERG) ===== */
+$('btnImport').addEventListener('click',()=>{ if(state!=='idle'){fail('Stop eerst de huidige sessie.');return;} $('fitFile').value=''; $('fitFile').click(); });
+$('fitFile').addEventListener('change',async e=>{ const file=e.target.files&&e.target.files[0]; if(!file)return;
+  try{ const buf=await file.arrayBuffer(); const res=parseFitWorkout(buf);
+    if(!res||!res.segments.length){ fail('Geen workout-stappen gevonden in dit .fit-bestand — is dit een opgenomen rit i.p.v. een trainingsplan?'); return; }
+    fail('');
+    if(res.needFtp && !ftpVal()) fail('Let op: dit plan gebruikt %FTP-doelen — vul de FTP in de atletenbalk in voor de juiste watt.');
+    else if(res.skipped) fail(res.skipped+' niet-tijdgebaseerde stap(pen) overgeslagen bij import.');
+    loadWorkout(res.segments, res.name || file.name.replace(/\.fit$/i,'')); }
+  catch(err){ fail('Kon .fit niet lezen: '+(err&&err.message||err)); } });
+
+/* minimale FIT-decoder voor workout_step (#27) — spiegelt de encoder hierboven */
+function parseFitWorkout(buf){
+  const dv=new DataView(buf), len=buf.byteLength;
+  if(len<14) throw new Error('bestand te klein');
+  const hSize=dv.getUint8(0);
+  if(String.fromCharCode(dv.getUint8(8),dv.getUint8(9),dv.getUint8(10),dv.getUint8(11))!=='.FIT') throw new Error('geen .FIT-signatuur');
+  const dataSize=dv.getUint32(4,true), end=Math.min(len-2,hSize+dataSize);
+  const defs={}, rawSteps=[]; let wktName=null;
+  function rdField(o,size,bt,le){ const t=bt&0x1f;
+    if(t===7){ let s=''; for(let i=0;i<size;i++){const c=dv.getUint8(o+i); if(!c)break; s+=String.fromCharCode(c);} return s; }
+    if(size===1)return (t===1)?dv.getInt8(o):dv.getUint8(o);
+    if(size===2)return (t===3)?dv.getInt16(o,le):dv.getUint16(o,le);
+    if(size===4)return (t===8)?dv.getFloat32(o,le):((t===5)?dv.getInt32(o,le):dv.getUint32(o,le));
+    if(size===8)return (t===9)?dv.getFloat64(o,le):dv.getUint32(o,le);
+    return dv.getUint8(o); }
+  function rdData(def,o){ const rec={};
+    for(const fld of def.fields){ rec[fld.num]=rdField(o,fld.size,fld.type,def.le); o+=fld.size; }
+    o+=def.devTotal;
+    if(def.gnum===27)rawSteps.push(rec);
+    else if(def.gnum===26 && typeof rec[8]==='string' && rec[8].trim())wktName=rec[8].trim();
+    return o; }
+  let pos=hSize;
+  while(pos<end){ const rh=dv.getUint8(pos); pos+=1;
+    if(rh&0x80){ const def=defs[(rh>>5)&0x03]; if(!def)break; pos=rdData(def,pos); continue; }
+    if(rh&0x40){ const le=dv.getUint8(pos+1)===0, gnum=dv.getUint16(pos+2,le), nf=dv.getUint8(pos+4);
+      let o=pos+5; const fields=[];
+      for(let i=0;i<nf;i++){ fields.push({num:dv.getUint8(o),size:dv.getUint8(o+1),type:dv.getUint8(o+2)}); o+=3; }
+      let devTotal=0; if(rh&0x20){ const ndf=dv.getUint8(o); o+=1; for(let i=0;i<ndf;i++){ devTotal+=dv.getUint8(o+1); o+=3; } }
+      defs[rh&0x0f]={le,gnum,fields,devTotal}; pos=o;
+    } else { const def=defs[rh&0x0f]; if(!def)break; pos=rdData(def,pos); } }
+  let skipped=0;
+  const isRepeat=dt=>[6,7,8,9,10,11,12,13,17,18].indexOf(dt)>=0;
+  function stepToSeg(rec){ const dt=rec[1];
+    if(!(dt===0||dt==null)){ skipped++; return null; }
+    const d=rec[2]; if(d==null||(d>>>0)===0xFFFFFFFF) return null;
+    const dur=Math.round(d/1000); if(dur<=0) return null;
+    let pct=null,w=null; const tt=rec[3],lo=rec[5],hi=rec[6];
+    if(tt===4){ const cl=(lo!=null&&(lo>>>0)!==0xFFFFFFFF)?lo:null, ch=(hi!=null&&(hi>>>0)!==0xFFFFFFFF)?hi:null;
+      let pick=(cl!=null&&ch!=null)?(cl+ch)/2:(ch!=null?ch:cl);
+      if(pick!=null){ if(pick>1000)w=Math.round(pick-1000); else pct=Math.round(pick); } }
+    const it=rec[7]; let kind;
+    if(it===2)kind='warm'; else if(it===3)kind='cool'; else if(it===1)kind='rest';
+    else { const f=ftpVal(); const p=pct!=null?pct:((w!=null&&f)?w/f*100:null); kind=(p!=null&&p>=88)?'work':'steady'; }
+    if(pct==null&&w==null)pct=(kind==='rest'?50:kind==='warm'?55:kind==='cool'?50:65);
+    const nm=(typeof rec[0]==='string'&&rec[0].trim())?rec[0].trim():segKindName(kind);
+    return {kind,dur,pct,w,cad:null,label:nm}; }
+  const out=[], srcStart=[];
+  rawSteps.forEach((rec,idx)=>{ srcStart[idx]=out.length; const dt=rec[1];
+    if(isRepeat(dt)){ const from=(rec[2]|0), count=Math.max(1,Math.min(50,(rec[4]|0)||1));
+      const bs=(srcStart[from]!=null?srcStart[from]:0), body=out.slice(bs);
+      for(let c=1;c<count && out.length<600;c++){ for(const seg of body){ out.push({...seg}); if(out.length>=600)break; } } }
+    else { const seg=stepToSeg(rec); if(seg)out.push(seg); } });
+  return { segments:out, name:wktName, skipped, needFtp: out.some(s=>s.pct!=null&&s.w==null) }; }
+
+/* ===== loops ===== */
+setInterval(render,500);
+let lastDraw=0;
+function frame(ts){ if(ts-lastDraw>50){lastDraw=ts;draw();} requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+setInterval(()=>{ planTick(); if(running()){const t=Math.round(elapsed());
+  log.push({t,pwr:cur.pwr==null?null:Math.round(cur.pwr),hr:cur.hr,cad:cur.cad,
+            core:cur.core==null?null:+cur.core.toFixed(2)});}},1000);
+setInterval(saveState,3000);
+window.addEventListener('beforeunload',saveState);
+
+loadState(); renderLaps(); updateControls(); sizeCanvas(); render(); draw(); drawLactate(); showBleNotice();
+</script>
+</body>
+</html>
