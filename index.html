@@ -36,7 +36,14 @@
   .brand{justify-self:start}
   .clock{justify-self:center}
   .hbtns{justify-self:end}
-  @media (max-width:760px){header{display:flex;flex-wrap:wrap}.brand,.clock,.hbtns{justify-self:auto}.clock{align-items:flex-start}}
+  @media (max-width:760px){
+    header{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+    .brand,.clock,.hbtns{justify-self:auto}
+    .brand{align-items:center}.brand .txt{align-items:center}
+    .clock{align-items:center}
+    .hbtns{justify-content:center;width:100%;gap:8px}
+    .trainctl{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;width:100%}
+  }
   .brand{display:flex;align-items:center;gap:12px}
   .brand .txt{display:flex;flex-direction:column;line-height:1.18}
   .brand b{font-weight:700;font-size:20px;letter-spacing:.01em;color:var(--gold)}
@@ -944,7 +951,7 @@ function draw(){
   const tEnd=Math.max(elapsed(),planEnd,60),tStart=0,span=Math.max(60,tEnd-tStart);
   const X=t=>padL+((t-tStart)/span)*cw;
   const yAxis=(min,max)=>v=>padT+ch-((v-min)/(max-min))*ch;
-  ctx.font='11px ui-monospace,monospace';ctx.textBaseline='middle';
+  ctx.font='12px ui-monospace,monospace';ctx.textBaseline='middle';
 
   function grid(min,max,step,fmtf,side,color){ctx.strokeStyle='rgba(28,26,18,.08)';ctx.lineWidth=1;
     const y=yAxis(min,max);ctx.fillStyle=color||'#8a8268';
@@ -1012,7 +1019,7 @@ function draw(){
   }
 
   // x-as: adaptieve tijd-ijking
-  ctx.font='10px ui-monospace,monospace';ctx.textBaseline='alphabetic';ctx.lineWidth=1;
+  ctx.font='11px ui-monospace,monospace';ctx.textBaseline='alphabetic';ctx.lineWidth=1;
   const tStep=niceTimeStep(tEnd);
   for(let tt=0;tt<=tEnd+0.5;tt+=tStep){const xx=X(tt);
     ctx.strokeStyle='rgba(28,26,18,.045)';ctx.beginPath();ctx.moveTo(xx,padT);ctx.lineTo(xx,padT+ch);ctx.stroke();
@@ -1081,12 +1088,12 @@ function bleHelpHTML(){ return IS_IOS
   ? 'Web Bluetooth ontbreekt in Safari op iPad, dus de sensoren en KICKR werken hier niet. Open dit bestand in de gratis app <b>Bluefy &ndash; Web BLE Browser</b> om wel te kunnen verbinden. Grafieken, trainingsbouwer en export werken ook in Safari.'
   : 'Geen Web Bluetooth in deze browser &mdash; gebruik Chrome of Edge op een computer om sensoren te verbinden.'; }
 function showBleNotice(){ if(HAS_BLE)return; const n=$('btNotice'); if(!n||!n.hidden)return; $('btNoticeTxt').innerHTML=bleHelpHTML(); n.hidden=false; }
-function bleFailMsg(){ return IS_IOS?'Geen Web Bluetooth in Safari — open via de app Bluefy (zie melding bovenaan).':'Geen Web Bluetooth — gebruik Chrome of Edge.'; }
+function bleFailMsg(){ return IS_IOS?'Geen Web Bluetooth in Safari — open dit via de app Bluefy.':'Geen Web Bluetooth — gebruik Chrome of Edge (of de app Bluefy op iPad/iPhone).'; }
 if($('btNoticeX'))$('btNoticeX').addEventListener('click',()=>{$('btNotice').hidden=true;});
 
 /* ===== connect ===== */
 async function connect(k){const cfg=SENSORS[k];
-  if(!navigator.bluetooth){fail(bleFailMsg());showBleNotice();return;}
+  if(!navigator.bluetooth){fail(bleFailMsg());return;}
   try{manualOff[k]=false; setDot(k,'warn');
     const d=await navigator.bluetooth.requestDevice({filters:[{services:cfg.filter}],
       optionalServices:[...cfg.filter,cfg.svc]});
@@ -1137,7 +1144,7 @@ function onIndoorBike(e){const dv=e.target.value;const fl=dv.getUint16(0,true);l
   if(cad!=null){cad=Math.round(cad);cur.cad=cad;lastRevChangeMs=now;
     if(running()){stat.cad.sum+=cad;stat.cad.n++;push('cad',cad);}}}
 async function connectTrainer(){
-  if(!navigator.bluetooth){fail(bleFailMsg());showBleNotice();return;}
+  if(!navigator.bluetooth){fail(bleFailMsg());return;}
   try{ trnManualOff=false; ergWarned=false; setDot('trn','warn');
     const d=await navigator.bluetooth.requestDevice({filters:[{services:[FTMS]}],optionalServices:[FTMS,CPS]});
     d.addEventListener('gattserverdisconnected',onTrnDrop);
@@ -1843,7 +1850,7 @@ setInterval(()=>{ planTick(); if(running()){const t=Math.round(elapsed());
 setInterval(saveState,3000);
 window.addEventListener('beforeunload',saveState);
 
-loadState(); renderLaps(); updateControls(); sizeCanvas(); render(); draw(); drawLactate(); showBleNotice();
+loadState(); renderLaps(); updateControls(); sizeCanvas(); render(); draw(); drawLactate();
 </script>
 </body>
 </html>
